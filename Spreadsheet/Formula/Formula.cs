@@ -1,5 +1,6 @@
 ﻿// Skeleton written by Joe Zachary for CS 3500, January 2015
 // Revised by Joe Zachary, January 2016
+// JLZ Repaired pair of mistakes, January 23, 2016
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace Formulas
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
         /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
-        /// variable symbols (a letter followed by one or more letters and/or digits), left and right
+        /// variable symbols (a letter followed by zero or more letters and/or digits), left and right
         /// parentheses, and the four binary operator symbols +, -, *, and /.  White space is
         /// permitted between tokens, but is not required.
         /// 
@@ -58,7 +59,7 @@ namespace Formulas
         /// <summary>
         /// Given a formula, enumerates the tokens that compose it.  Tokens are left paren,
         /// right paren, one of the four operator symbols, a string consisting of a letter followed by
-        /// one or more digits and/or letters, a double literal, and anything that doesn't
+        /// zero or more digits and/or letters, a double literal, and anything that doesn't
         /// match one of those patterns.  There are no empty tokens, and no token contains white space.
         /// </summary>
         private static IEnumerable<string> GetTokens(String formula)
@@ -67,7 +68,7 @@ namespace Formulas
             String lpPattern = @"\(";
             String rpPattern = @"\)";
             String opPattern = @"[\+\-*/]";
-            String varPattern = @"[a-zA-Z][0-9a-zA-Z]+";
+            String varPattern = @"[a-zA-Z][0-9a-zA-Z]*";
             String doublePattern = @"(?: \d+\.\d* | \d*\.\d+ | \d+ ) (?: e[\+-]?\d+)?";
             String spacePattern = @"\s+";
 
