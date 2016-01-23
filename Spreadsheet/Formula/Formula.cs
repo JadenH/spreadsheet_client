@@ -67,7 +67,7 @@ namespace Formulas
             String lpPattern = @"\(";
             String rpPattern = @"\)";
             String opPattern = @"[\+\-*/]";
-            String varPattern = @"[a-zA-Z]([0-9a-zA-Z])+";
+            String varPattern = @"[a-zA-Z][0-9a-zA-Z]+";
             String doublePattern = @"(?: \d+\.\d* | \d*\.\d+ | \d+ ) (?: e[\+-]?\d+)?";
             String spacePattern = @"\s+";
 
