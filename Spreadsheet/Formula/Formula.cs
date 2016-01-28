@@ -53,7 +53,7 @@ namespace Formulas
         public Formula(String formula)
         {
             List<string> tokens = GetTokens(formula).ToList();
-            if (tokens.Count <= 0) throw new FormulaFormatException(" ");
+            if (tokens.Count <= 0) throw new FormulaFormatException("Formula must contain at least one token.");
             ValidateTokens(tokens);
             ValidateParentheses(tokens);
             ValidateOrderOfOperations(tokens);
@@ -70,12 +70,12 @@ namespace Formulas
             if (!Regex.IsMatch(tokens[0], $"({doublePattern}) | ({varPattern}) | ({lpPattern})",
                 RegexOptions.IgnorePatternWhitespace))
             {
-                throw new FormulaFormatException(" ");
+                throw new FormulaFormatException("The first token of a formula must be a number, a variable, or an opening parenthesis.");
             }
             //The last token of a formula must be a number, a variable, or a closing parenthesis.
             if (!Regex.IsMatch(tokens.Last(), $"({doublePattern}) | ({varPattern}) | ({rpPattern})", RegexOptions.IgnorePatternWhitespace))
             {
-                throw new FormulaFormatException(" ");
+                throw new FormulaFormatException("The last token of a formula must be a number, a variable, or a closing parenthesis.");
             }
             for (int i = 0; i < tokens.Count-1; i++)
             {
@@ -84,7 +84,7 @@ namespace Formulas
                 {
                     if (!Regex.IsMatch(tokens[i + 1], $"({opPattern}) | ({rpPattern})", RegexOptions.IgnorePatternWhitespace))
                     {
-                        throw new FormulaFormatException(" ");
+                        throw new FormulaFormatException("Any token that immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.");
                     }
                 }
 
@@ -93,7 +93,7 @@ namespace Formulas
                 {
                     if (!Regex.IsMatch(tokens[i + 1], $"({doublePattern}) | ({varPattern}) | ({lpPattern})", RegexOptions.IgnorePatternWhitespace))
                     {
-                        throw new FormulaFormatException(" ");
+                        throw new FormulaFormatException("Any token that immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis.");
                     }
                 }
             }
@@ -127,9 +127,9 @@ namespace Formulas
             {
                 if (token == "(") left++;
                 if (token == ")") right++;
-                if (right > left) throw new FormulaFormatException(" ");
+                if (right > left) throw new FormulaFormatException("Invalid order of parentheses.");
             }
-            if (left != right) throw new FormulaFormatException(" ");
+            if (left != right) throw new FormulaFormatException("Invalid number of parentheses.");
         }
 
         /// <summary>
