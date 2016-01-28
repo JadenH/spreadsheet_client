@@ -1,6 +1,7 @@
 ﻿// Written by Joe Zachary for CS 3500, January 2016.
 
 using System;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Formulas;
 
@@ -47,6 +48,71 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// This tests that there must be at least one token.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct4()
+        {
+            Formula f = new Formula("");
+        }
+
+        /// <summary>
+        /// This tests reading tokens from left to right, at no point should the number of closing 
+        /// parentheses seen so far be greater than the number of opening parentheses seen so far.
+        /// Should throw a FormulaFormatException.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct5()
+        {
+            Formula f = new Formula(")(2 + 2) * 2");
+        }
+
+        /// <summary>
+        /// Tests that a ForumlaFormatException is thrown when
+        /// there are unequal amount of closing and opening parentheses.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct6()
+        {
+            Formula f = new Formula("(2 + 2)) * 2");
+        }
+
+        /// <summary>
+        /// Tests that a negative floating point number causes an exception.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct7()
+        {
+            Formula f = new Formula("-5.3");
+        }
+
+        /// <summary>
+        /// Tests a invalid last token.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct8()
+        {
+            Formula f = new Formula("2.5e9 + x5 /");
+        }
+
+        /// 
+        /// <summary>
+        /// Tests a few valid formulas to make sure there are no exceptions.
+        /// </summary>
+        [TestMethod]
+        public void Construct9()
+        {
+            Formula f = new Formula("2.5e9 + x5 / 17");
+            Formula f1 = new Formula("x*y-2+35/9");
+            Formula f2 = new Formula("(5 * 2) + 8");
+        }
+
+        /// <summary>
         /// Makes sure that "2+3" evaluates to 5.  Since the Formula
         /// contains no variables, the delegate passed in as the
         /// parameter doesn't matter.  We are passing in one that
@@ -90,6 +156,7 @@ namespace FormulaTestCases
         /// The delegate passed to Evaluate is defined below.  We check
         /// that evaluating the formula returns in 10.
         /// </summary>
+        [TestMethod]
         public void Evaluate4()
         {
             Formula f = new Formula("x + y");
@@ -99,9 +166,10 @@ namespace FormulaTestCases
         /// <summary>
         /// This uses one of each kind of token.
         /// </summary>
+        [TestMethod]
         public void Evaluate5 ()
         {
-            Formula f = new Formula("(x + y) * (z / y) * 1.0");
+            Formula f = new Formula("(x + y) * (z / x) * 1.0");
             Assert.AreEqual(f.Evaluate(Lookup4), 20.0, 1e-6);
         }
 
