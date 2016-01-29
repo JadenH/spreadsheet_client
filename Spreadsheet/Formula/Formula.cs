@@ -190,12 +190,9 @@ namespace Formulas
         {
             if (token == "+" || token == "-")
             {
-                if (operatorStack.Count >= 1 && new[] {"+", "-"}.Contains(operatorStack.Last().ToString()))
+                if (operatorStack.Count >= 1 && new[] {"+", "-"}.Contains(operatorStack.Peek()))
                 {
-                    double v1 = valueStack.Pop();
-                    double v2 = valueStack.Pop();
-                    string op = operatorStack.Pop().ToString();
-                    valueStack.Push(Operate(op, v1, v2));
+                    valueStack.Push(Operate(operatorStack.Pop(), valueStack.Pop(), valueStack.Pop()));
                 }
             }
 
@@ -284,15 +281,15 @@ namespace Formulas
         /// </summary>
         /// <param name="op">The operator to apply.</param>
         /// <returns></returns>
-        public static Double Operate(object op, double left, double right)
+        public static Double Operate(object op, double num1, double num2)
         {
             switch (op.ToString())
             {
-                case "+": return left + right;
-                case "-": return left - right;
-                case "*": return left * right;
-                case "/": return left / right;
-                case "%": return left % right;
+                case "+": return num2 + num1;
+                case "-": return num2 - num1;
+                case "*": return num2 * num1;
+                case "/": return num1 / num2;
+                case "%": return num2 % num1;
                 default: throw new FormulaFormatException($"Invalid operation: {op}");
             }   
         }

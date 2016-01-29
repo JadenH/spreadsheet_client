@@ -77,7 +77,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void Construct6()
         {
-            Formula f = new Formula("(2 + 2)) * 2");
+            Formula f = new Formula("((2 + 2) * 2");
         }
 
         /// <summary>
@@ -171,6 +171,37 @@ namespace FormulaTestCases
         {
             Formula f = new Formula("(x + y) * (z / x) * 1.0");
             Assert.AreEqual(f.Evaluate(Lookup4), 20.0, 1e-6);
+        }
+
+        /// <summary>
+        /// This tests a simple operation enclosed in parentheses.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate6()
+        {
+            Formula f = new Formula("(2 - 1)");
+            Assert.AreEqual(f.Evaluate(v => 0), 1, 1e-6);
+        }
+
+        /// <summary>
+        /// This tests that it operates left to right with add and subtract.
+        /// </summary>
+        [TestMethod]
+        public void Evaluate7()
+        {
+            Formula f = new Formula("2 - 1 + 1");
+            Assert.AreEqual(f.Evaluate(v => 0), 2, 1e-6);
+        }
+
+        /// <summary>
+        /// This tests a lookup of not a number.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(UndefinedVariableException))]
+        public void Evaluate8()
+        {
+            Formula f = new Formula("x - 1");
+            Assert.AreEqual(f.Evaluate(v => double.NaN), 2, 1e-6);
         }
 
         /// <summary>
