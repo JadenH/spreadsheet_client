@@ -1,6 +1,7 @@
 ﻿// Written by Joe Zachary for CS 3500, January 2016.
-// Reapired error in Evaluate5.  Added TestMethod Attribute
+// Repaired error in Evaluate5.  Added TestMethod Attribute
 //    for Evaluate4 and Evaluate5 - JLZ January 25, 2016
+// Corrected comment for Evaluate3 - JLZ January 29, 2016
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -76,7 +77,7 @@ namespace FormulaTestCases
 
         /// <summary>
         /// Here, the delegate passed to Evaluate always throws a
-        /// FormulaEvaluationException (meaning that no variables have
+        /// UndefinedVariableException (meaning that no variables have
         /// values).  The test case checks that the result of
         /// evaluating the Formula is a FormulaEvaluationException.
         /// </summary>
