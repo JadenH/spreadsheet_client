@@ -23,7 +23,7 @@ namespace Formulas
     {
         private const string lpPattern = @"\(";
         private const string rpPattern = @"\)";
-        private const string opPattern = @"[\+\-*/]";
+        private const string opPattern = @"^[\+\-*/]$";
         private const string varPattern = @"[a-zA-Z][0-9a-zA-Z]*";
         private const string doublePattern = @"(?: \d+\.\d* | \d*\.\d+ | \d+ ) (?: e[\+-]?\d+)?";
         private const string spacePattern = @"\s+";
@@ -149,7 +149,7 @@ namespace Formulas
             foreach (var token in _tokens)
             {
                 // If it is a variable.
-                if (Regex.IsMatch(token, varPattern, RegexOptions.IgnorePatternWhitespace))
+                if (Regex.IsMatch(token, $"^{varPattern}$", RegexOptions.IgnorePatternWhitespace))
                 {
                     HandleVariable(lookup, token, operatorStack, valueStack);
                 }
@@ -213,7 +213,7 @@ namespace Formulas
 
             if (operatorStack.Count > 0 && new[] {"/", "*"}.Contains(operatorStack.Peek()))
             {
-                valueStack.Push(Operate(operatorStack.Pop(), valueStack.Pop(), value));
+                valueStack.Push(Operate(operatorStack.Pop(), value, valueStack.Pop()));
             }
             else
             {
@@ -232,7 +232,7 @@ namespace Formulas
             try
             {
                 value = lookup(token);
-            } 
+            }
             catch (UndefinedVariableException)
             {
                 throw new FormulaEvaluationException("No variables have values.");
@@ -245,7 +245,7 @@ namespace Formulas
 
             if (operatorStack.Count > 0 && new[] {"/", "*"}.Contains(operatorStack.Peek()))
             {
-                valueStack.Push(Operate(operatorStack.Pop(), valueStack.Pop(), value));
+                valueStack.Push(Operate(operatorStack.Pop(), value, valueStack.Pop()));
             }
             else
             {
@@ -289,8 +289,8 @@ namespace Formulas
                 case "-": return num2 - num1;
                 case "*": return num2 * num1;
                 case "/":
-                    if (num2 == 0) throw new FormulaEvaluationException("Divide by zero.");
-                    return num1 / num2;
+                    if (num1 == 0) throw new FormulaEvaluationException("Divide by zero.");
+                    return num2 / num1;
                 case "%": return num2 % num1;
                 default: throw new FormulaFormatException($"Invalid operation: {op}");
             }   
