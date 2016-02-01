@@ -281,14 +281,16 @@ namespace Formulas
         /// </summary>
         /// <param name="op">The operator to apply.</param>
         /// <returns></returns>
-        public static Double Operate(object op, double num1, double num2)
+        public static double Operate(object op, double num1, double num2)
         {
             switch (op.ToString())
             {
                 case "+": return num2 + num1;
                 case "-": return num2 - num1;
                 case "*": return num2 * num1;
-                case "/": return num1 / num2;
+                case "/":
+                    if (num2 == 0) throw new FormulaEvaluationException("Divide by zero.");
+                    return num1 / num2;
                 case "%": return num2 % num1;
                 default: throw new FormulaFormatException($"Invalid operation: {op}");
             }   

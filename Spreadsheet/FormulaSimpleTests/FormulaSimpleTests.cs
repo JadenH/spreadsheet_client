@@ -205,6 +205,17 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// This tests dividing by zero.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaEvaluationException))]
+        public void Evaluate9()
+        {
+            Formula f = new Formula("1 / 0");
+            Assert.AreEqual(f.Evaluate(v => 0), 2, 1e-6);
+        }
+
+        /// <summary>
         /// A Lookup method that maps x to 4.0, y to 6.0, and z to 8.0.
         /// All other variables result in an UndefinedVariableException.
         /// </summary>
