@@ -1,1 +1,17 @@
-When dividing by zero, the program returned zero and did not throw an exception. This wasn't caught initially as I did not have a test case that tested for dividing by zero. To fix the issue I added a check in my operate method to see if the denominator is equal to zero, and if it is true it throws an FormulaEvaluationException. This should now pass tests that check for dividing by zero.
+Failing Tests:
+- Test18
+- Test18a
+- Test32a
+- Test41
+- Test42
+- Test43
+- Test44
+- Test45
+
+My tests were failing for mainly two reasons.
+1. I was not catching divide by zero. This caused test18 and test 18a to both fail. 
+2. Some of my regex failed because it was not explicit enough. For instance, 3.0e0 was passing as a variable because it partially matched. This caused test32a to fail. This also caused the constructor tests (41-45) to fail.
+
+Fixes:
+
+I first fixed the dividing by zero to pass by throwing an exception. This was a simple fix that required one line in my operate method. I then worked on fixing the regex expressions by debugging to figure out which ones were failing. I then made the expressions work for those conditions, which usually meant making it match the whole line.
