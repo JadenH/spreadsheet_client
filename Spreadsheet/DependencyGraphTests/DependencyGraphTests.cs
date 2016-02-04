@@ -198,12 +198,13 @@ namespace DependencyGraphTests
         public void TestMethod17()
         {
             DependencyGraph graph = new DependencyGraph();
+            List<string> dependents = new List<string>();
             for (int i = 1000; i > 0; i--)
             {
-                graph.AddDependency($"a{i}", $"b{i}");
-                Assert.IsTrue(graph.HasDependents($"a{i}"));
-                Assert.AreEqual(graph.GetDependents($"a{i}").First(), $"b{i}");
+                graph.AddDependency("a", $"b{i}");
+                dependents.Add($"b{i}");
             }
+            Assert.IsTrue(graph.GetDependents("a").SequenceEqual(dependents));
         }
 
         /// <summary>
