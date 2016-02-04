@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Dependencies
 {
@@ -49,6 +50,9 @@ namespace Dependencies
     /// </summary>
     public class DependencyGraph
     {
+        private Dictionary<string, DependencyNode> _nodes = new Dictionary<string, DependencyNode>();
+        private int _size;
+
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>
@@ -59,9 +63,27 @@ namespace Dependencies
         /// <summary>
         /// The number of dependencies in the DependencyGraph.
         /// </summary>
-        public int Size
+        public int Size => _size;
+
+        private DependencyNode GetDependencyNode(string s)
         {
-            get { return 0; }
+            if (_nodes.ContainsKey(s))
+            {
+                return _nodes[s];
+            }
+            _nodes.Add(s, new DependencyNode(s));
+            return _nodes[s];
+        }
+
+        /// <summary>
+        /// Removes the dependency node if it is no longer being used.
+        /// </summary>
+        private void CleanUp(DependencyNode node)
+        {
+            if (node.CountDependents() == 0 && node.CountDependees() == 0)
+            {
+                _nodes.Remove(node.ToString());
+            }
         }
 
         /// <summary>
@@ -69,7 +91,10 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
-            return false;
+            if (s == null) throw new ArgumentException("paremeter s can not be null.");
+            if (!_nodes.ContainsKey(s)) return false; //There is no such node in the graph.
+
+            return GetDependencyNode(s).CountDependents() > 0;
         }
 
         /// <summary>
@@ -77,7 +102,10 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
-            return false;
+            if (s == null) throw new ArgumentException("paremeter s can not be null.");
+            if (!_nodes.ContainsKey(s)) return false; //There is no such node in the graph.
+
+            return GetDependencyNode(s).CountDependees() > 0;
         }
 
         /// <summary>
@@ -85,7 +113,14 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            return null;
+            if (s == null) throw new ArgumentException("paremeter s can not be null.");
+            if (!_nodes.ContainsKey(s)) yield break; //There is no such node in the graph.
+
+            DependencyNode sNode = GetDependencyNode(s);
+            foreach (var dependent in sNode.GetDependents())
+            {
+                yield return dependent;
+            }
         }
 
         /// <summary>
@@ -93,7 +128,14 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            return null;
+            if (s == null) throw new ArgumentException("Paremeter s can not be null.");
+            if (!_nodes.ContainsKey(s)) yield break; //There is no such node in the graph.
+
+            DependencyNode tNode = GetDependencyNode(s);
+            foreach (var dependee in tNode.GetDependees())
+            {
+                yield return dependee;
+            }
         }
 
         /// <summary>
@@ -103,6 +145,17 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
+            if (s == null || t == null) throw new ArgumentException("Can't have null values in parameters.");
+            DependencyNode sNode = GetDependencyNode(s);
+            DependencyNode tNode = GetDependencyNode(t);
+
+            //Return if we have already added this dependency.
+            if (sNode.HasDependency(tNode)) return;
+
+            //Add the dependency and increase the size of our graph.
+            sNode.AddDependency(GetDependencyNode(t));
+            tNode.AddDependee(GetDependencyNode(s));
+            _size++;
         }
 
         /// <summary>
@@ -112,6 +165,17 @@ namespace Dependencies
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
+            if (s == null || t == null) throw new ArgumentException("Can't have null values in parameters.");
+            if (!_nodes.ContainsKey(s)) return; //If the node doesn't exist then we don't need to do anything.
+            if (!_nodes.ContainsKey(t)) return; //If the node doesn't exist then we don't need to do anything.
+
+            DependencyNode sNode = GetDependencyNode(s);
+            DependencyNode tNode = GetDependencyNode(t);
+            tNode.RemoveDependee(sNode);
+            sNode.RemoveDependency(tNode);
+            CleanUp(sNode);
+            CleanUp(tNode);
+            _size--;
         }
 
         /// <summary>
@@ -121,6 +185,15 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            if (s == null) throw new ArgumentException("Can't have null values in parameters.");
+
+            DependencyNode sNode = GetDependencyNode(s);
+            sNode.ClearDependents();
+            foreach (var newDependent in newDependents)
+            {
+                AddDependency(sNode.ToString(), newDependent);
+            }
+            CleanUp(sNode);
         }
 
         /// <summary>
@@ -130,6 +203,15 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
+            if (t == null) throw new ArgumentException("Can't have null values in parameters.");
+
+            DependencyNode tNode = GetDependencyNode(t);
+            tNode.ClearDependees();
+            foreach (var newDependee in newDependees)
+            {
+                AddDependency(newDependee, tNode.ToString());
+            }
+            CleanUp(tNode);
         }
     }
 }
