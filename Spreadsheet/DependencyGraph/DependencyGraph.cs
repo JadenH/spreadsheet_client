@@ -51,7 +51,6 @@ namespace Dependencies
     public class DependencyGraph
     {
         private Dictionary<string, DependencyNode> _nodes = new Dictionary<string, DependencyNode>();
-        private int _size;
 
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
@@ -63,7 +62,7 @@ namespace Dependencies
         /// <summary>
         /// The number of dependencies in the DependencyGraph.
         /// </summary>
-        public int Size => _size;
+        public int Size => _nodes.Values.Sum(node => node.CountDependents());
 
         private DependencyNode GetDependencyNode(string s)
         {
@@ -155,7 +154,6 @@ namespace Dependencies
             //Add the dependency and increase the size of our graph.
             sNode.AddDependency(GetDependencyNode(t));
             tNode.AddDependee(GetDependencyNode(s));
-            _size++;
         }
 
         /// <summary>
@@ -175,7 +173,6 @@ namespace Dependencies
             sNode.RemoveDependency(tNode);
             CleanUp(sNode);
             CleanUp(tNode);
-            _size--;
         }
 
         /// <summary>
