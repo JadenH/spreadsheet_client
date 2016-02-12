@@ -1,10 +1,7 @@
 ﻿// Written by Joe Zachary for CS 3500, February 2015
-// Added usings for Formulas and Dependencies 02/11/15 2:03 pm
-// Didn't need the Dependencies using 02/11/15 2:24 pm
-// Fixed a syntactic issue with a comment 02/15/15 8:43 pm
+// Revised by Joe Zachary, February 12, 2016
 
 using System;
-using System.IO;
 using System.Collections.Generic;
 using Formulas;
 
@@ -25,7 +22,7 @@ namespace SS
     }
 
     /// <summary>
-    /// Used as a possible value of a cell.
+    /// A possible value of a cell.
     /// </summary>
     public struct FormulaError
     {
@@ -50,15 +47,17 @@ namespace SS
     /// spreadsheet consists of an infinite number of named cells.
     /// 
     /// A string is a cell name if and only if it consists of one or more letters, 
-    /// followed by a non-zero digit, followed by zero or more digits.
+    /// followed by a non-zero digit, followed by zero or more digits.  Cell names
+    /// are not case sensitive.
     /// 
-    /// For example, "A15", "a15", "XY32", and "BC7" are cell names.  (Note that despite
-    /// their similarity, "A15" and "a15" are different cell names.)  On the other hand, 
-    /// "Z", "X07", and "hello" are not cell names."
+    /// For example, "A15", "a15", "XY32", and "BC7" are cell names.  (Note that 
+    /// "A15" and "a15" name the same cell.)  On the other hand, "Z", "X07", and 
+    /// "hello" are not cell names."
     /// 
     /// A spreadsheet contains a cell corresponding to every possible cell name.  
     /// In addition to a name, each cell has a contents and a value.  The distinction is
-    /// important.
+    /// important, and it is important that you understand the distinction and use
+    /// the right term when writing code, writing comments, and asking questions.
     /// 
     /// The contents of a cell can be (1) a string, (2) a double, or (3) a Formula.  If the
     /// contents is an empty string, we say that the cell is empty.  (By analogy, the contents
@@ -187,7 +186,8 @@ namespace SS
         /// The method will produce one of those enumerations.
         /// 
         /// PLEASE NOTE THAT THIS METHOD DEPENDS ON THE ABSTRACT GetDirectDependents.
-        /// IT WON'T WORK UNTIL GetDirectDependents IS IMPLEMENTED CORRECTLY.
+        /// IT WON'T WORK UNTIL GetDirectDependents IS IMPLEMENTED CORRECTLY.  YOU WILL
+        /// NOT NEED TO MODIFY THIS METHOD.
         /// </summary>
         protected IEnumerable<String> GetCellsToRecalculate(ISet<String> names)
         {
