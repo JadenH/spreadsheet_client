@@ -4,6 +4,8 @@
 // Corrected comment for Evaluate3 - JLZ January 29, 2016
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Formulas;
@@ -17,6 +19,7 @@ namespace FormulaTestCases
     /// Run > All Tests.
     /// </summary>
     [TestClass]
+    [ExcludeFromCodeCoverage]
     public class UnitTests
     {
         /// <summary>
@@ -103,7 +106,6 @@ namespace FormulaTestCases
             Formula f = new Formula("2.5e9 + x5 /");
         }
 
-        /// 
         /// <summary>
         /// Tests a few valid formulas to make sure there are no exceptions.
         /// </summary>
@@ -113,6 +115,16 @@ namespace FormulaTestCases
             Formula f = new Formula("2.5e9 + x5 / 17");
             Formula f1 = new Formula("x*y-2+35/9");
             Formula f2 = new Formula("(5 * 2) + 8");
+        }
+
+        /// <summary>
+        /// Tests a invalid token following an opening parantheses
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct10()
+        {
+            Formula f = new Formula("(-)");
         }
 
         /// <summary>
@@ -216,6 +228,109 @@ namespace FormulaTestCases
         {
             Formula f = new Formula("1 / 0");
             Assert.AreEqual(f.Evaluate(v => 0), 2, 1e-6);
+        }
+
+        /// <summary>
+        /// Test an exception is thrown from validator.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void FormulaStruct0()
+        {
+            Formula f1 = new Formula("x", s => s, s => false);
+        }
+
+        /// <summary>
+        /// Test a validator that returns true.
+        /// </summary>
+        [TestMethod]
+        public void FormulaStruct1()
+        {
+            Formula f1 = new Formula("x", s => s, s => true);
+        }
+
+        /// <summary>
+        /// Test GetVariables.
+        /// </summary>
+        [TestMethod]
+        public void FormulaStruct2()
+        {
+            Formula f1 = new Formula("x2+y3+1");
+            HashSet<string> vars = f1.GetVariables();
+
+            Assert.IsTrue(vars.Contains("x2"));
+            Assert.IsTrue(vars.Contains("y3"));
+            Assert.IsTrue(!vars.Contains("1"));
+            Assert.IsTrue(vars.Count == 2);
+        }
+
+        /// <summary>
+        /// Test an exception is thrown from a complex validator.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void FormulaStruct3()
+        {
+            Formula f1 = new Formula("x+y3", s => s.ToUpper(), s => Regex.IsMatch(s, "^[A-Z]$"));
+            f1.ToString();
+        }
+
+        /// <summary>
+        /// Test GetVariables after Normalized.
+        /// </summary>
+        [TestMethod]
+        public void FormulaStruct4()
+        {
+            Formula f1 = new Formula("x2", s=> s.ToUpper(), s => true);
+            HashSet<string> vars = f1.GetVariables();
+            Assert.IsTrue(vars.Contains("X2"));
+        }
+
+        /// <summary>
+        /// Test zero argument Formula Constructor.
+        /// </summary>
+        [TestMethod]
+        public void FormulaStruct5()
+        {
+            Formula f = new Formula();
+            Assert.AreEqual(f.Evaluate(v => 0), 0, 1e-6);
+        }
+
+        /// <summary>
+        /// Test creating a formula matching another formula.
+        /// </summary>
+        [TestMethod]
+        public void FormulaStruct6()
+        {
+            Formula f1 = new Formula("1 + 1");
+            Formula f2 = new Formula(f1.ToString(), s => s, s => true);
+            Assert.AreEqual(f2.Evaluate(v => 0), 2, 1e-6);
+            Assert.AreNotSame(f2, f1);
+        }
+
+        /// <summary>
+        /// Test a valid normalizer and validator.
+        /// </summary>
+        [TestMethod]
+        public void FormulaStruct7()
+        {
+            Formula f1 = new Formula("x2+y3", s => s.ToUpper(), s => Regex.IsMatch(s, "^[A-Z]+[0-9]+$"));
+            Assert.AreEqual(f1.Evaluate(v =>
+            {
+                if (v != "X2") return 1;
+                if (v != "Y3") return 3;
+                return 1;
+            }), 4, 1e-6);
+        }
+
+        /// <summary>
+        /// Test an empty formula string in the second constructor.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void FormulaStruct8()
+        {
+            Formula f1 = new Formula("", s => s.ToUpper(), s => Regex.IsMatch(s, "^[A-Z]+[0-9]+$"));
         }
 
         /// <summary>

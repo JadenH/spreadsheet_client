@@ -60,6 +60,20 @@ namespace Dependencies
         }
 
         /// <summary>
+        /// Creates a new DependencyGraph matching another existing Dependency Graph.
+        /// </summary>
+        public DependencyGraph(DependencyGraph dg)
+        {
+            foreach (var node in dg._nodes)
+            {
+                foreach (var dependent in node.Value.GetDependents())
+                {
+                    AddDependency(node.Key, dependent);
+                }
+            }
+        }
+
+        /// <summary>
         /// The number of dependencies in the DependencyGraph.
         /// </summary>
         public int Size => _nodes.Values.Sum(node => node.CountDependents());
@@ -86,33 +100,36 @@ namespace Dependencies
         }
 
         /// <summary>
-        /// Reports whether dependents(s) is non-empty.  Requires s != null.
+        /// Reports whether dependents(s) is non-empty. Requires s != null. 
+        /// Throws an ArgumentNullException if s is null.
         /// </summary>
         public bool HasDependents(string s)
         {
-            if (s == null) throw new ArgumentException("paremeter s can not be null.");
+            if (s == null) throw new ArgumentNullException(nameof(s));
             if (!_nodes.ContainsKey(s)) return false; //There is no such node in the graph.
 
             return GetDependencyNode(s).CountDependents() > 0;
         }
 
         /// <summary>
-        /// Reports whether dependees(s) is non-empty.  Requires s != null.
+        /// Reports whether dependees(s) is non-empty. Requires s != null. 
+        /// Throws an ArgumentNullException if s is null.
         /// </summary>
         public bool HasDependees(string s)
         {
-            if (s == null) throw new ArgumentException("paremeter s can not be null.");
+            if (s == null) throw new ArgumentNullException(nameof(s));
             if (!_nodes.ContainsKey(s)) return false; //There is no such node in the graph.
 
             return GetDependencyNode(s).CountDependees() > 0;
         }
 
         /// <summary>
-        /// Enumerates dependents(s).  Requires s != null.
+        /// Enumerates dependents(s).  Requires s != null. 
+        /// Throws an ArgumentNullException if s is null.
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            if (s == null) throw new ArgumentException("paremeter s can not be null.");
+            if (s == null) throw new ArgumentNullException(nameof(s));
             if (!_nodes.ContainsKey(s)) yield break; //There is no such node in the graph.
 
             DependencyNode sNode = GetDependencyNode(s);
@@ -123,11 +140,12 @@ namespace Dependencies
         }
 
         /// <summary>
-        /// Enumerates dependees(s).  Requires s != null.
+        /// Enumerates dependees(s).
+        /// Throws an ArgumentNullException if s is null..
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            if (s == null) throw new ArgumentException("Paremeter s can not be null.");
+            if (s == null) throw new ArgumentNullException(nameof(s));
             if (!_nodes.ContainsKey(s)) yield break; //There is no such node in the graph.
 
             DependencyNode tNode = GetDependencyNode(s);
@@ -140,11 +158,12 @@ namespace Dependencies
         /// <summary>
         /// Adds the dependency (s,t) to this DependencyGraph.
         /// This has no effect if (s,t) already belongs to this DependencyGraph.
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null. Throws an ArgumentNullException if s or t are null.
         /// </summary>
         public void AddDependency(string s, string t)
         {
-            if (s == null || t == null) throw new ArgumentException("Can't have null values in parameters.");
+            if (s == null) throw new ArgumentNullException(nameof(s));
+            if (t == null) throw new ArgumentNullException(nameof(t));
             DependencyNode sNode = GetDependencyNode(s);
             DependencyNode tNode = GetDependencyNode(t);
 
@@ -159,11 +178,12 @@ namespace Dependencies
         /// <summary>
         /// Removes the dependency (s,t) from this DependencyGraph.
         /// Does nothing if (s,t) doesn't belong to this DependencyGraph.
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null. Throws an ArgumentNullException if s or t are null.
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
-            if (s == null || t == null) throw new ArgumentException("Can't have null values in parameters.");
+            if (s == null) throw new ArgumentNullException(nameof(s));
+            if (t == null) throw new ArgumentNullException(nameof(t));
             if (!_nodes.ContainsKey(s)) return; //If the node doesn't exist then we don't need to do anything.
             if (!_nodes.ContainsKey(t)) return; //If the node doesn't exist then we don't need to do anything.
 
@@ -178,11 +198,11 @@ namespace Dependencies
         /// <summary>
         /// Removes all existing dependencies of the form (s,r).  Then, for each
         /// t in newDependents, adds the dependency (s,t).
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null. Throws an ArgumentNullException if s or t are null.
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-            if (s == null) throw new ArgumentException("Can't have null values in parameters.");
+            if (s == null) throw new ArgumentNullException(nameof(s));
 
             DependencyNode sNode = GetDependencyNode(s);
             sNode.ClearDependents();
@@ -196,11 +216,11 @@ namespace Dependencies
         /// <summary>
         /// Removes all existing dependencies of the form (r,t).  Then, for each 
         /// s in newDependees, adds the dependency (s,t).
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null. Throws an ArgumentNullException if s or t are null.
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
-            if (t == null) throw new ArgumentException("Can't have null values in parameters.");
+            if (t == null) throw new ArgumentNullException(nameof(t));
 
             DependencyNode tNode = GetDependencyNode(t);
             tNode.ClearDependees();

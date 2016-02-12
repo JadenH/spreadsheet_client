@@ -19,7 +19,7 @@ namespace Formulas
     /// the four binary operator symbols +, -, *, and /.  (The unary operators + and -
     /// are not allowed.)
     /// </summary>
-    public class Formula
+    public struct Formula
     {
         private const string lpPattern = @"\(";
         private const string rpPattern = @"\)";
@@ -50,7 +50,7 @@ namespace Formulas
         /// If the formula is syntacticaly invalid, throws a FormulaFormatException with an 
         /// explanatory Message.
         /// </summary>
-        public Formula(String formula)
+        public Formula(string formula)
         {
             List<string> tokens = GetTokens(formula).ToList();
             if (tokens.Count <= 0) throw new FormulaFormatException("Formula must contain at least one token.");
@@ -61,10 +61,25 @@ namespace Formulas
         }
 
         /// <summary>
+        /// Creates a formula with a Normalizer and Validator.
+        /// The purpose of a Normalizer is to convert variables into a canonical form.  
+        /// The purpose of a Validator is to impose extra restrictions on the validity of a variable,
+        /// beyond the ones already built into the Formula definition.
+        /// </summary>
+        public Formula(string formula, Normalizer normalizer, Validator validator) : this()
+        {
+            List<string> tokens = GetTokens(formula, normalizer).ToList();
+            if (tokens.Count <= 0) throw new FormulaFormatException("Formula must contain at least one token.");
+            ValidateTokens(tokens, validator);
+            ValidateParentheses(tokens);
+            ValidateOrderOfOperations(tokens);
+            _tokens = tokens;
+        }
+        /// <summary>
         /// Tests the order of operations in a list of tokens from a formula.
         /// </summary>
         /// <param name="tokens">List of strings (tokens) to check.</param>
-        public static void ValidateOrderOfOperations(List<string> tokens)
+        private static void ValidateOrderOfOperations(List<string> tokens)
         {
             //The first token of a formula must be a number, a variable, or an opening parenthesis.
             if (!Regex.IsMatch(tokens[0], $"({doublePattern}) | ({varPattern}) | ({lpPattern})",
@@ -99,7 +114,26 @@ namespace Formulas
             }
         }
 
-        public static void ValidateTokens(List<string> tokens)
+        /// <summary>
+        /// Validates all tokens in a formula that they match one of the patterns.
+        /// Also validates against a given validator.
+        /// </summary>
+        private void ValidateTokens(List<string> tokens, Validator validator)
+        {
+            ValidateTokens(tokens);
+            foreach (var token in tokens.Where(token => Regex.IsMatch(token, $"^{varPattern}$")))
+            {
+                if (!validator.Invoke(token))
+                {
+                    throw new FormulaFormatException($"Validator caught an invalid token '{token}'.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates all tokens in a formula that they match one of the patterns.
+        /// </summary>
+        private static void ValidateTokens(List<string> tokens)
         {
             string pattern = $"({lpPattern}) | ({rpPattern}) | ({opPattern}) | ({varPattern}) | ({doublePattern})";
             foreach (string token in tokens)
@@ -118,7 +152,7 @@ namespace Formulas
         /// </summary>
         /// <param name="tokens">List of strings (tokens) to check.</param>
         /// <returns></returns>
-        public static void ValidateParentheses(List<string> tokens)
+        private static void ValidateParentheses(List<string> tokens)
         {
             int right;
             var left = right = 0;
@@ -145,6 +179,8 @@ namespace Formulas
         {
             Stack<object> operatorStack = new Stack<object>();
             Stack<double> valueStack = new Stack<double>();
+
+            if (_tokens == null) _tokens = new[] {"0"};
 
             foreach (var token in _tokens)
             {
@@ -302,17 +338,31 @@ namespace Formulas
         /// zero or more digits and/or letters, a double literal, and anything that doesn't
         /// match one of those patterns.  There are no empty tokens, and no token contains white space.
         /// </summary>
-        private static IEnumerable<string> GetTokens(String formula)
+        private static IEnumerable<string> GetTokens(string formula, Normalizer normalizer = null)
         {
             string pattern = $"({lpPattern}) | ({rpPattern}) | ({opPattern}) | ({varPattern}) | ({doublePattern}) | ({spacePattern})";
             // Enumerate matching tokens that don't consist solely of white space.
-            foreach (String s in Regex.Split(formula, pattern, RegexOptions.IgnorePatternWhitespace))
+            foreach (string s in Regex.Split(formula, pattern, RegexOptions.IgnorePatternWhitespace))
             {
                 if (!Regex.IsMatch(s, @"^\s*$", RegexOptions.Singleline))
                 {
-                    yield return s;
+                    if (normalizer != null && Regex.IsMatch(s, $"^{varPattern}$")) yield return normalizer.Invoke(s);
+                    else yield return s;
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the original formula as it was entered to begin with.
+        /// </summary>
+        public override string ToString()
+        {
+            return _tokens.Aggregate("", (current, token) => current + token + " ");
+        }
+
+        public HashSet<string> GetVariables()
+        {
+            return new HashSet<string>(_tokens.Where(token => Regex.IsMatch(token, $"^{varPattern}$")));
         }
     }
 
@@ -324,6 +374,9 @@ namespace Formulas
     /// don't is up to the implementation of the method.
     /// </summary>
     public delegate double Lookup(string s);
+
+    public delegate string Normalizer(string s);
+    public delegate bool Validator(string s);
 
     /// <summary>
     /// Used to report that a Lookup delegate is unable to determine the value

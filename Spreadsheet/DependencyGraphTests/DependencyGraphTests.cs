@@ -151,7 +151,7 @@ namespace DependencyGraphTests
         /// Test Null value in AddDependency
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod13()
         {
             DependencyGraph graph = new DependencyGraph();
@@ -162,7 +162,7 @@ namespace DependencyGraphTests
         /// Test Null value in RemoveDependency
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod14()
         {
             DependencyGraph graph = new DependencyGraph();
@@ -173,7 +173,7 @@ namespace DependencyGraphTests
         /// Test Null value in GetDependees
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod15()
         {
             DependencyGraph graph = new DependencyGraph();
@@ -184,7 +184,7 @@ namespace DependencyGraphTests
         /// Test Null value in HasDependents
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod16()
         {
             DependencyGraph graph = new DependencyGraph();
@@ -304,6 +304,35 @@ namespace DependencyGraphTests
             graph.ReplaceDependees("b", new List<string> { "c", "c", "c" });
             Assert.AreEqual(graph.GetDependees("b").Count(), 1);
             Assert.IsTrue(graph.GetDependees("b").Contains("c"));
+        }
+
+        /// <summary>
+        /// Test creating a duplicate graph
+        /// </summary>
+        [TestMethod]
+        public void TestMethod26()
+        {
+            DependencyGraph graph = new DependencyGraph();
+            graph.AddDependency("a", "b");
+            DependencyGraph graph2 = new DependencyGraph(graph);
+            Assert.AreNotSame(graph2, graph);
+            Assert.IsTrue(graph.GetDependents("a").SequenceEqual(graph2.GetDependents("a")));
+        }
+
+        /// <summary>
+        /// Test creating a duplicate graph and removing a dependency from first graph.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod27()
+        {
+            DependencyGraph graph = new DependencyGraph();
+            graph.AddDependency("a", "b");
+            DependencyGraph graph2 = new DependencyGraph(graph);
+            graph.RemoveDependency("a", "b");
+
+            Assert.AreNotSame(graph2, graph);
+            Assert.IsFalse(graph.GetDependents("a").SequenceEqual(graph2.GetDependents("a")));
+            Assert.IsFalse(graph.GetDependees("b").SequenceEqual(graph2.GetDependees("b")));
         }
     }
 }
