@@ -35,14 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DependencyGraph, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\PS4\MISHRA_SNEHASHISH\Spreadsheet\DependencyGraph\bin\Debug\DependencyGraph.dll</HintPath>
-    </Reference>
-    <Reference Include="Formula, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\PS4\MISHRA_SNEHASHISH\Spreadsheet\Formula\bin\Debug\Formula.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
