@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{862EAD85-346F-4D2B-A53C-98074FF813BA}</ProjectGuid>
+    <ProjectGuid>{9025A594-DF2A-4E6A-B8C2-F087ECC3E203}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DependencyGraph</RootNamespace>
-    <AssemblyName>DependencyGraph</AssemblyName>
+    <RootNamespace>Spreadsheet</RootNamespace>
+    <AssemblyName>Spreadsheet</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\Spreadsheet.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -40,9 +41,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DependencyGraph.cs" />
-    <Compile Include="DependencyNode.cs" />
+    <Compile Include="AbstractSpreadsheet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DependencyGraph\DependencyGraph.csproj">
+      <Project>{862ead85-346f-4d2b-a53c-98074ff813ba}</Project>
+      <Name>DependencyGraph</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Formula\Formula.csproj">
+      <Project>{d43d998c-9797-4cf4-9bb0-6de22753849a}</Project>
+      <Name>Formula</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
