@@ -4,10 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
 namespace Formulas
@@ -357,11 +354,13 @@ namespace Formulas
         /// </summary>
         public override string ToString()
         {
+            if (_tokens == null) _tokens = new[] { "0" };
             return _tokens.Aggregate("", (current, token) => current + token + " ");
         }
 
         public HashSet<string> GetVariables()
         {
+            if (_tokens == null) _tokens = new[] { "0" };
             return new HashSet<string>(_tokens.Where(token => Regex.IsMatch(token, $"^{varPattern}$")));
         }
     }
