@@ -1,5 +1,6 @@
 ﻿// Written by Joe Zachary for CS 3500, February 2015
 // Revised by Joe Zachary, February 12, 2016
+// 2/14/15: Removed obsolete comment from SetContents (JLZ)
 
 using System;
 using System.Collections.Generic;
@@ -128,8 +129,6 @@ namespace SS
         public abstract ISet<String> SetCellContents(String name, String text);
 
         /// <summary>
-        /// If formula parameter is null, throws an ArgumentNullException.
-        /// 
         /// Otherwise, if name is null or invalid, throws an InvalidNameException.
         /// 
         /// Otherwise, if changing the contents of the named cell to be the formula would cause a 
