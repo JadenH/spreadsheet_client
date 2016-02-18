@@ -11,6 +11,17 @@ namespace SpreadsheetTests
     [TestClass]
     public class SpreadsheetTests
     {
+
+        /// <summary>
+        /// Test that spreadsheet can be an Abstract Spreadsheet.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod0()
+        {
+            AbstractSpreadsheet s = new Spreadsheet();
+            Assert.IsTrue(s.GetType() == typeof(Spreadsheet));
+        }
+
         /// <summary>
         /// Test that GetCellContents throws an exception when name is null.
         /// </summary>
