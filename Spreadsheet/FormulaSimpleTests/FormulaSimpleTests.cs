@@ -256,7 +256,7 @@ namespace FormulaTestCases
         public void FormulaStruct2()
         {
             Formula f1 = new Formula("x2+y3+1");
-            HashSet<string> vars = f1.GetVariables();
+            HashSet<string> vars = (HashSet<string>) f1.GetVariables();
 
             Assert.IsTrue(vars.Contains("x2"));
             Assert.IsTrue(vars.Contains("y3"));
@@ -282,7 +282,7 @@ namespace FormulaTestCases
         public void FormulaStruct4()
         {
             Formula f1 = new Formula("x2", s=> s.ToUpper(), s => true);
-            HashSet<string> vars = f1.GetVariables();
+            HashSet<string> vars = (HashSet<string>) f1.GetVariables();
             Assert.IsTrue(vars.Contains("X2"));
         }
 

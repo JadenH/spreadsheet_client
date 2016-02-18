@@ -8,7 +8,7 @@ using Formulas;
 namespace SS
 {
     /// <summary>
-    /// TODO
+    /// Inherits from Abstract Spreadsheet. Contains cells and dependencies of cells.
     /// </summary>
     public class Spreadsheet : AbstractSpreadsheet
     {
@@ -33,11 +33,11 @@ namespace SS
             if (name == null) throw new InvalidNameException();
             name = name.ToUpper();
 
-            return _cells[name].CellContents;
+            return _cells[name].GetCellContents();
         }
 
         /// <summary>
-        /// TODO
+        /// Validates that a given cellName contains a letter followed by a number.
         /// </summary>
         private void ValidateCellName(string name)
         {
@@ -159,6 +159,7 @@ namespace SS
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
             if (name == null) throw new ArgumentNullException();
+            ValidateCellName(name);
             return _dependencyGraph.GetDependents(name);
         }
     }

@@ -256,5 +256,19 @@ namespace SpreadsheetTests
             s.SetCellContents("x", new Formula());
         }
 
+        /// <summary>
+        /// Test GetNamesOfAllNonemptyCells with a deep Circular dependency.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(CircularException))]
+        public void TestMethod22()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetCellContents("a1", new Formula("b1"));
+            s.SetCellContents("b1", new Formula("c1"));
+            s.SetCellContents("c1", new Formula("d1"));
+            s.SetCellContents("d1", new Formula("a1"));
+        }
+
     }
 }
