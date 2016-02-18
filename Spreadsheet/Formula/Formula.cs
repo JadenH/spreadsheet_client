@@ -358,7 +358,7 @@ namespace Formulas
             return _tokens.Aggregate("", (current, token) => current + token + " ");
         }
 
-        public HashSet<string> GetVariables()
+        public ISet<string> GetVariables()
         {
             if (_tokens == null) _tokens = new[] { "0" };
             return new HashSet<string>(_tokens.Where(token => Regex.IsMatch(token, $"^{varPattern}$")));
