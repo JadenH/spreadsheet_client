@@ -11,7 +11,7 @@
 //           Added a new abstract method AbstractSpreadsheet.SetContentsOfCell
 //           Changed the three AbstractSpreadsheet.SetCellContents methods to be protected
 
-// 2/20/15: Changed specification of SetContentsOfCell (JLZ)
+// 2/20/15: Changed specification of SetContentsOfCell (twice) (JLZ)
 
 using System;
 using System.Collections.Generic;
@@ -187,8 +187,9 @@ namespace SS
         ///
         /// Otherwise, if content begins with the character '=', an attempt is made
         /// to parse the remainder of content into a Formula f using the Formula
-        /// constructor with s => s.ToUpper() as the normalizer and s => IsValid.IsMatch(s) 
-        /// as the validator.  There are then three possibilities:
+        /// constructor with s => s.ToUpper() as the normalizer and a validator that
+        /// checks that s is a valid cell name as defined in the AbstractSpreadsheet
+        /// class comment.  There are then three possibilities:
         ///
         ///   (1) If the remainder of content cannot be parsed into a Formula, a
         ///       Formulas.FormulaFormatException is thrown.
