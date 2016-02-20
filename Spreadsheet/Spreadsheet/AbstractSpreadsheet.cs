@@ -11,6 +11,8 @@
 //           Added a new abstract method AbstractSpreadsheet.SetContentsOfCell
 //           Changed the three AbstractSpreadsheet.SetCellContents methods to be protected
 
+// 2/20/16: Clarified Spreadsheet class comment (JLZ)
+
 using System;
 using System.Collections.Generic;
 using Formulas;
@@ -69,7 +71,7 @@ namespace SS
     }
 
 
-    // MODIFIED PARAGRAPHS 1-3 AND ADDED PARAGRAPH 4 FOR PS6
+    // MODIFIED PARAGRAPHS 1-3 AND ADDED PARAGRAPH 4 FOR PS6.  ALSO CLARIFIED PENULTIMATE PARAGRAPH.
     /// <summary>
     /// An AbstractSpreadsheet object represents the state of a simple spreadsheet.  A 
     /// spreadsheet consists of a regular expression (called IsValid below) and an infinite 
@@ -110,10 +112,10 @@ namespace SS
     /// 
     /// If a cell's contents is a Formula, its value is either a double or a FormulaError.
     /// The value of a Formula, of course, can depend on the values of variables.  The value 
-    /// of a Formula variable is the value of the spreadsheet cell it names (if that cell's 
-    /// value is a double) or is undefined (otherwise).  If a Formula depends on an undefined
-    /// variable or on a division by zero, its value is a FormulaError.  Otherwise, its value
-    /// is a double, as specified in Formula.Evaluate.
+    /// of a Formula variable is the value of the spreadsheet cell it names (if it names a
+    /// cell and that cell's value is a double) or is undefined (otherwise).  If a Formula 
+    /// depends on an undefined variable or on a division by zero, its value is a FormulaError. 
+    /// Otherwise, its value is a double, as specified in Formula.Evaluate.
     /// 
     /// Spreadsheets are never allowed to contain a combination of Formulas that establish
     /// a circular dependency.  A circular dependency exists when a cell depends on itself.
