@@ -419,14 +419,14 @@ namespace GradingTests
             Assert.AreEqual(500, sss.Count);
             for (int i = 0; i < 500; i++)
             {
-                Assert.IsTrue(sss.Contains("A1" + i));
+                Assert.IsTrue(sss.Contains("A1" + i) || sss.Contains("a1" + i));
             }
 
             sss = s.SetCellContents("A1249", 25.0);
             Assert.AreEqual(250, sss.Count);
             for (int i = 0; i < 250; i++)
             {
-                Assert.IsTrue(sss.Contains("A1" + i));
+                Assert.IsTrue(sss.Contains("A1" + i) || sss.Contains("a1" + i));
             }
 
 
