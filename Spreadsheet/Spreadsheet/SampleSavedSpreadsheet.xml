@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<spreadsheet IsValid="^.*$">
+  <cell name = "A1" contents="1.5"></cell>
+  <cell name = "A2" contents="8.0"></cell>
+  <cell name = "A3" contents="=A1*A2+23"></cell>
+  <cell name = "B2" contents="Hello"></cell>
+</spreadsheet>
