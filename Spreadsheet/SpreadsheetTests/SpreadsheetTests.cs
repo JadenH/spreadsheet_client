@@ -34,47 +34,47 @@ namespace SpreadsheetTests
         }
 
         /// <summary>
-        /// Test that SetCellContents throws an exception when name is null on double.
+        /// Test that SetContentsOfCell throws an exception when name is null on double.
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
         public void TestMethod2()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents(null, 1);
+            s.SetContentsOfCell(null, "1");
         }
 
         /// <summary>
-        /// Test that SetCellContents throws an exception when name is null on text.
+        /// Test that SetContentsOfCell throws an exception when name is null on text.
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
         public void TestMethod3()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents(null, "1");
+            s.SetContentsOfCell(null, "1");
         }
 
         /// <summary>
-        /// Test that SetCellContents throws an exception when text is null.
+        /// Test that SetContentsOfCell throws an exception when text is null.
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod4()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("A1", null);
+            s.SetContentsOfCell("A1", null);
         }
 
         /// <summary>
-        /// Test that SetCellContents throws an exception when name is null on formula.
+        /// Test that SetContentsOfCell throws an exception when name is null on formula.
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(InvalidNameException))]
         public void TestMethod5()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents(null, new Formula());
+            s.SetContentsOfCell(null, "=");
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace SpreadsheetTests
         public void TestMethod6()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("a1", 3);
+            s.SetContentsOfCell("a1", "3");
             Assert.AreEqual((double) s.GetCellContents("A1"), 3);
         }
 
@@ -95,7 +95,7 @@ namespace SpreadsheetTests
         public void TestMethod7()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("a1", new Formula("3 + 1"));
+            s.SetContentsOfCell("a1", "=3 + 1");
             string contents = Regex.Replace(s.GetCellContents("A1").ToString(), @"\s+", string.Empty);
             Assert.AreEqual(contents, "3+1");
         }
@@ -107,7 +107,7 @@ namespace SpreadsheetTests
         public void TestMethod8()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("a1", "testing");
+            s.SetContentsOfCell("a1", "testing");
             Assert.AreEqual(s.GetCellContents("A1").ToString(), "testing");
         }
 
@@ -118,9 +118,9 @@ namespace SpreadsheetTests
         public void TestMethod9()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("b1", new Formula("a1 * 2"));
-            s.SetCellContents("c1", new Formula("b1 + a1"));
-            Assert.IsTrue(s.SetCellContents("A1", new Formula()).SetEquals(new List<string> { "A1", "B1", "C1" }));
+            s.SetContentsOfCell("b1", "=a1 * 2");
+            s.SetContentsOfCell("c1", "=b1 + a1");
+            Assert.IsTrue(s.SetContentsOfCell("A1", "=").SetEquals(new List<string> { "A1", "B1", "C1" }));
         }
 
         /// <summary>
@@ -130,9 +130,9 @@ namespace SpreadsheetTests
         public void TestMethod10()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("b1", new Formula("a1 * 2"));
-            s.SetCellContents("c1", new Formula("b1 + a1"));
-            Assert.IsTrue(s.SetCellContents("A1", 3).SetEquals(new List<string> { "A1", "B1", "C1" }));
+            s.SetContentsOfCell("b1", "=a1 * 2");
+            s.SetContentsOfCell("c1", "=b1 + a1");
+            Assert.IsTrue(s.SetContentsOfCell("A1", "3").SetEquals(new List<string> { "A1", "B1", "C1" }));
         }
 
         /// <summary>
@@ -142,9 +142,9 @@ namespace SpreadsheetTests
         public void TestMethod11()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("b1", new Formula("a1 * 2"));
-            s.SetCellContents("c1", new Formula("b1 + a1"));
-            Assert.IsTrue(s.SetCellContents("A1", "testing").SetEquals(new List<string> { "A1", "B1", "C1" }));
+            s.SetContentsOfCell("b1", "=a1 * 2");
+            s.SetContentsOfCell("c1", "=b1 + a1");
+            Assert.IsTrue(s.SetContentsOfCell("A1", "testing").SetEquals(new List<string> { "A1", "B1", "C1" }));
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace SpreadsheetTests
         public void TestMethod12()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("b1", new Formula("a1 * 2"));
+            s.SetContentsOfCell("b1", "=a1 * 2");
             Assert.IsTrue(s.GetCellContents("b1") is Formula);
             Assert.IsFalse(s.GetCellContents("b1") is string);
             Assert.IsFalse(s.GetCellContents("b1") is double);
@@ -167,7 +167,7 @@ namespace SpreadsheetTests
         public void TestMethod13()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("b1", "testing");
+            s.SetContentsOfCell("b1", "testing");
             Assert.IsTrue(s.GetCellContents("b1") is string);
             Assert.IsFalse(s.GetCellContents("b1") is Formula);
             Assert.IsFalse(s.GetCellContents("b1") is double);
@@ -180,7 +180,7 @@ namespace SpreadsheetTests
         public void TestMethod14()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("b1", 5);
+            s.SetContentsOfCell("b1", "5");
             Assert.IsTrue(s.GetCellContents("b1") is double);
             Assert.IsFalse(s.GetCellContents("b1") is string);
             Assert.IsFalse(s.GetCellContents("b1") is Formula);
@@ -193,9 +193,9 @@ namespace SpreadsheetTests
         public void TestMethod15()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("b1", 5);
-            s.SetCellContents("a1", new Formula());
-            s.SetCellContents("a5", "test");
+            s.SetContentsOfCell("b1", "5");
+            s.SetContentsOfCell("a1", "=");
+            s.SetContentsOfCell("a5", "test");
             Assert.IsTrue(s.GetNamesOfAllNonemptyCells().Count() == 3);
             Assert.IsTrue(s.GetNamesOfAllNonemptyCells().Contains("b1", StringComparer.CurrentCultureIgnoreCase));
             Assert.IsTrue(s.GetNamesOfAllNonemptyCells().Contains("a5", StringComparer.CurrentCultureIgnoreCase));
@@ -209,8 +209,8 @@ namespace SpreadsheetTests
         public void TestMethod16()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("a1", new Formula("b1"));
-            s.SetCellContents("b1", new Formula("a1"));
+            s.SetContentsOfCell("a1", "=b1");
+            s.SetContentsOfCell("b1", "=a1");
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace SpreadsheetTests
         public void TestMethod18()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("A05", "testing");
+            s.SetContentsOfCell("A05", "testing");
         }
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace SpreadsheetTests
         public void TestMethod19()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("x", "testing");
+            s.SetContentsOfCell("x", "testing");
         }
 
         /// <summary>
@@ -253,7 +253,7 @@ namespace SpreadsheetTests
         public void TestMethod20()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("x", 5);
+            s.SetContentsOfCell("x", "5");
         }
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace SpreadsheetTests
         public void TestMethod21()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("x", new Formula());
+            s.SetContentsOfCell("x", "=");
         }
 
         /// <summary>
@@ -275,10 +275,10 @@ namespace SpreadsheetTests
         public void TestMethod22()
         {
             Spreadsheet s = new Spreadsheet();
-            s.SetCellContents("a1", new Formula("b1"));
-            s.SetCellContents("b1", new Formula("c1"));
-            s.SetCellContents("c1", new Formula("d1"));
-            s.SetCellContents("d1", new Formula("a1"));
+            s.SetContentsOfCell("a1", "=b1");
+            s.SetContentsOfCell("b1", "=c1");
+            s.SetContentsOfCell("c1", "=d1");
+            s.SetContentsOfCell("d1", "=a1");
         }
 
     }
