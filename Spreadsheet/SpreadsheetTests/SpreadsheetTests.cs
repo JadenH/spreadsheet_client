@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -12,6 +13,7 @@ using Formulas;
 namespace SpreadsheetTests
 {
     [TestClass]
+    [ExcludeFromCodeCoverage]
     public class SpreadsheetTests
     {
 
@@ -296,6 +298,18 @@ namespace SpreadsheetTests
             Assert.IsTrue(s.Changed);
         }
 
+        /// <summary>
+        /// Test that a spreadsheet has changed when setting a cell.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod24()
+        {
+            Spreadsheet s = new Spreadsheet(new Regex(".*"));
+            Assert.IsFalse(s.Changed);
+            s.SetContentsOfCell("a1", "=b1");
+            Assert.IsTrue(s.Changed);
+        }
+
         static readonly string TestXMLPath = Environment.CurrentDirectory + "/testXML.xml";
         static readonly string TestXMLPath2 = Environment.CurrentDirectory + "/testXML1.xml";
 
@@ -401,7 +415,7 @@ namespace SpreadsheetTests
         }
 
         /// <summary>
-        /// Test get value of a cell.
+        /// Test get value of a cell with a formula.
         /// </summary>
         [TestMethod]
         public void TestSpreadsheetValues1()
@@ -421,5 +435,42 @@ namespace SpreadsheetTests
             Assert.AreEqual(s.GetCellValue("a1"), string.Empty);
         }
 
+        /// <summary>
+        /// Test get value of a cell with a double.
+        /// </summary>
+        [TestMethod]
+        public void TestSpreadsheetValues3()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("a1", "5");
+            Assert.AreEqual(s.GetCellValue("a1"), 5.0);
+        }
+
+        /// <summary>
+        /// Test get value of a cell with a string.
+        /// </summary>
+        [TestMethod]
+        public void TestSpreadsheetValues4()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("a1", "cool!");
+            Assert.AreEqual(s.GetCellValue("a1"), "cool!");
+        }
+
+        /// <summary>
+        /// Stress Test the get values.
+        /// </summary>
+        [TestMethod]
+        public void StressTestSpreadsheetValues()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("a1", "1");
+            for (int i = 2; i <= 250; i++)
+            {
+                s.SetContentsOfCell($"a{i}", $"=a{i - 1} + 1");
+            }
+            Assert.AreEqual(250.0, (double)s.GetCellValue("a250"), 1e-9);
+            Assert.AreEqual(100.0, (double)s.GetCellValue("a100"), 1e-9);
+        }
     }
 }

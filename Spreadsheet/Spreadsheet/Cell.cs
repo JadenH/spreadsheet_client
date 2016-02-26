@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Formulas;
 
 namespace SS
@@ -14,13 +9,19 @@ namespace SS
     public struct Cell
     {
         private object _cellContents;
+        private double? _value;
 
         /// <summary>
         /// Cell constructor for a formula.
         /// </summary>
-        public Cell(Formula cellContents)
+        public Cell(Formula cellContents, Dictionary<string, Cell> cells)
         {
             _cellContents = cellContents;
+            _value = cellContents.Evaluate(c =>
+            {
+                if (!cells.ContainsKey(c)) return 0;
+                return (double) cells[c].GetValue(cells);
+            });
         }
 
         /// <summary>
@@ -29,6 +30,7 @@ namespace SS
         public Cell(double cellContents)
         {
             _cellContents = cellContents;
+            _value = cellContents;
         }
 
         /// <summary>
@@ -37,6 +39,7 @@ namespace SS
         public Cell(string cellContents)
         {
             _cellContents = cellContents;
+            _value = null;
         }
 
         /// <summary>
@@ -50,11 +53,15 @@ namespace SS
         /// <summary>
         /// Returns the cell value.
         /// </summary>
-        public object GetValue()
+        public object GetValue(Dictionary<string, Cell> cells)
         {
             if (!(_cellContents is Formula)) return _cellContents;
-            Formula cellContents = (Formula) _cellContents;
-            return cellContents.Evaluate(v => 0);
+            Formula cellContents = (Formula)_cellContents;
+            return _value ?? (_value = cellContents.Evaluate(c =>
+            {
+                if (!cells.ContainsKey(c)) return 0;
+                return (double) cells[c].GetValue(cells);
+            }));
         }
 
     }

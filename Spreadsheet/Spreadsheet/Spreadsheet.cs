@@ -48,8 +48,16 @@ namespace SS
         /// </summary>
         public Spreadsheet(TextReader source)
         {
+            //Create the XML Document.
             XmlDocument document = new XmlDocument();
-            document.Load(source);
+            try
+            {
+                document.Load(source);
+            }
+            catch (Exception)
+            {
+                throw new IOException("Error reading spreadsheet document");
+            }
 
             //Add the schema to the document.
             XmlTextReader reader = new XmlTextReader("Spreadsheet.xsd");
@@ -71,9 +79,31 @@ namespace SS
 
             XmlElement spreadsheetElement = document.GetElementsByTagName("spreadsheet")[0] as XmlElement;
             _isValid = new Regex(spreadsheetElement.GetAttribute("IsValid"));
-            foreach (XmlElement cell in document.GetElementsByTagName("cell"))
+
+            XmlNodeList cells = document.GetElementsByTagName("cell");
+            HashSet<string> addedCells = new HashSet<string>();
+
+            //Iterate through cells in the document.
+            foreach (XmlElement cell in cells)
             {
-                SetContentsOfCell(cell.GetAttribute("name"), cell.GetAttribute("contents"));
+                //Verify cell name is unique.
+                string cellName = cell.GetAttribute("name");
+                if (addedCells.Contains(cellName)) throw new SpreadsheetReadException("Spreadsheet contains duplicate values for cell name: " + cellName);
+                addedCells.Add(cell.GetAttribute("name"));
+
+                //Add the cell to the spreadsheet.
+                try
+                {
+                    SetContentsOfCell(cellName, cell.GetAttribute("contents"));
+                }
+                catch (CircularException e)
+                {
+                    throw new SpreadsheetReadException("Error in spreadsheet: " + e.Message);
+                }
+                catch (FormulaFormatException e)
+                {
+                    throw new SpreadsheetReadException("Error in spreadsheet: " + e.Message);
+                }
             }
         }
 
@@ -169,7 +199,7 @@ namespace SS
             name = name.ToUpper();
             ValidateCellName(name);
 
-            return _cells.ContainsKey(name) ? _cells[name].GetValue() : string.Empty;
+            return _cells.ContainsKey(name) ? _cells[name].GetValue(_cells) : string.Empty;
         }
 
         /// <summary>
@@ -252,6 +282,7 @@ namespace SS
                 //If our formula has no tokens.
                 return SetCellContents(name, new Formula());
             }
+
             return new HashSet<string>(GetDependeesRecursively(name)) { name };
         }
 
@@ -366,7 +397,7 @@ namespace SS
 
             if (_cells.ContainsKey(name)) _cells.Remove(name);
 
-            Cell cell = new Cell(formula);
+            Cell cell = new Cell(formula, _cells);
             _cells.Add(name, cell);
 
             return new HashSet<string>(GetDependeesRecursively(name)) { name };
