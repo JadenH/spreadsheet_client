@@ -3,7 +3,7 @@
   <xs:element name="spreadsheet">
     <xs:complexType>
       <xs:sequence>
-        <xs:element maxOccurs="unbounded" name="cell">
+        <xs:element maxOccurs="unbounded" minOccurs="0" name="cell">
           <xs:complexType>
             <xs:attribute name="name" type="xs:string" use="required" />
             <xs:attribute name="contents" type="xs:string" use="required" />
