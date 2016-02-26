@@ -261,6 +261,7 @@ namespace SS
 
             Type contentType = GetContentType(content);
             Changed = true;
+
             if (contentType == typeof(double)) return SetCellContents(name, double.Parse(content));
             if (contentType == typeof(Formula))
             {
@@ -301,6 +302,20 @@ namespace SS
         }
 
         /// <summary>
+        /// Recalculates the given cell and all the cells that are dependent on the cell.
+        /// </summary>
+        private void RecalculateCells(string name)
+        {
+            foreach (var cell in GetCellsToRecalculate(name))
+            {
+                if (_cells.ContainsKey(cell))
+                {
+                    _cells[cell].Recalculate(_cells);
+                }
+            }
+        }
+
+        /// <summary>
         /// If name is null or invalid, throws an InvalidNameException.
         /// 
         /// Otherwise, the contents of the named cell becomes number.  The method returns a
@@ -320,7 +335,8 @@ namespace SS
             Cell cell = new Cell(number);
             _cells.Add(name, cell);
 
-            return new HashSet<string>(GetDependeesRecursively(name)) { name };
+            RecalculateCells(name);
+            return new HashSet<string>(GetCellsToRecalculate(name)) { name };
         }
 
         /// <summary>
@@ -347,9 +363,10 @@ namespace SS
 
                 Cell cell = new Cell(text);
                 _cells.Add(name, cell);
+                RecalculateCells(name);
             }
 
-            return new HashSet<string>(GetDependeesRecursively(name)) { name };
+            return new HashSet<string>(GetCellsToRecalculate(name)) { name };
         }
 
         /// <summary>
@@ -373,7 +390,7 @@ namespace SS
 
             foreach (var token in formula.GetVariables())
             {
-                _dependencyGraph.AddDependency(name, token.ToUpper());
+                _dependencyGraph.AddDependency(token.ToUpper(), name);
             }
 
             try
@@ -394,17 +411,8 @@ namespace SS
             Cell cell = new Cell(formula, _cells);
             _cells.Add(name, cell);
 
-            return new HashSet<string>(GetDependeesRecursively(name)) { name };
-        }
-
-        private HashSet<string> GetDependeesRecursively(string name)
-        {
-            HashSet<string> dependees = new HashSet<string>(_dependencyGraph.GetDependees(name));
-            foreach (var node in _dependencyGraph.GetDependees(name))
-            {
-                dependees.UnionWith(new HashSet<string>(GetDependeesRecursively(node)));
-            }
-            return dependees;
+            RecalculateCells(name);
+            return new HashSet<string>(GetCellsToRecalculate(name)) { name };
         }
 
         /// <summary>
@@ -428,7 +436,10 @@ namespace SS
         {
             if (name == null) throw new ArgumentNullException();
             ValidateCellName(name);
-            return _dependencyGraph.GetDependents(name);
+            foreach (var dependent in _dependencyGraph.GetDependents(name))
+            {
+                yield return dependent;
+            }
         }
     }
 }

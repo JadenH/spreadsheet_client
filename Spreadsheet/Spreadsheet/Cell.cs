@@ -6,7 +6,7 @@ namespace SS
     /// <summary>
     /// Simple cell struct that contains a cell's contents.
     /// </summary>
-    public struct Cell
+    public class Cell
     {
         private object _cellContents;
         private double? _value;
@@ -30,7 +30,6 @@ namespace SS
         public Cell(double cellContents)
         {
             _cellContents = cellContents;
-            _value = cellContents;
         }
 
         /// <summary>
@@ -39,7 +38,6 @@ namespace SS
         public Cell(string cellContents)
         {
             _cellContents = cellContents;
-            _value = null;
         }
 
         /// <summary>
@@ -48,6 +46,21 @@ namespace SS
         public object GetCellContents()
         {
             return _cellContents;
+        }
+
+        /// <summary>
+        /// Recalculates the value of a given cell.
+        /// </summary>
+        public void Recalculate(Dictionary<string, Cell> cells)
+        {
+            if (!(_cellContents is Formula)) return;
+            Formula cellContents = (Formula)_cellContents;
+            _value = cellContents.Evaluate(c =>
+            {
+                if (!cells.ContainsKey(c)) return 0;
+                if (cells[c]._cellContents is string) return 0;
+                return (double)cells[c].GetValue(cells);
+            });
         }
 
         /// <summary>

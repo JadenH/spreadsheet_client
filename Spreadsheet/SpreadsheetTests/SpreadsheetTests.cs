@@ -332,6 +332,21 @@ namespace SpreadsheetTests
             s.SetContentsOfCell("a1", "=A2");
         }
 
+        /// <summary>
+        /// Test some formula recalculations.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod27()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("a1", "5");
+            s.SetContentsOfCell("a2", "=a1");
+            s.SetContentsOfCell("a3", "=a2");
+            Assert.AreEqual(5.0, s.GetCellValue("a3"));
+            s.SetContentsOfCell("a1", "10");
+            Assert.AreEqual(10.0, s.GetCellValue("a3"));
+        }
+
         static readonly string TestXMLPath = Environment.CurrentDirectory + "/testXML.xml";
         static readonly string TestXMLPath2 = Environment.CurrentDirectory + "/testXML1.xml";
         static readonly string TestXMLPath3 = Environment.CurrentDirectory + "/testXML2.xml";
