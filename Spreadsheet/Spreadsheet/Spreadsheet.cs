@@ -17,13 +17,78 @@ namespace SS
     {
         private readonly DependencyGraph _dependencyGraph = new DependencyGraph();
         private readonly Dictionary<string, Cell> _cells = new Dictionary<string, Cell>();
+        private bool _changed;
         private const string _validCellNamePattern = "^[a-zA-Z]+([1-9][0-9]*)$";
+        private Regex _isValid;
+
+        /// <summary>
+        /// Creates an empty Spreadsheet whose IsValid regular expression accepts every string.
+        /// </summary>
+        public Spreadsheet()
+        {
+            _isValid = new Regex(".*");
+        }
+
+        /// <summary>
+        /// Creates an empty Spreadsheet whose IsValid regular expression is provided as the parameter.
+        /// </summary>
+        public Spreadsheet(Regex isValid)
+        {
+            _isValid = isValid;
+        }
+
+        /// <summary>
+        /// Creates a Spreadsheet that is a duplicate of the spreadsheet saved in source.
+        /// See the AbstractSpreadsheet.Save method and Spreadsheet.xsd for the file format 
+        /// specification.  If there's a problem reading source, throws an IOException
+        /// If the contents of source are not consistent with the schema in Spreadsheet.xsd, 
+        /// throws a SpreadsheetReadException.  If there is an invalid cell name, or a 
+        /// duplicate cell name, or an invalid formula in the source, throws a SpreadsheetReadException.
+        /// If there's a Formula that causes a circular dependency, throws a SpreadsheetReadException. 
+        /// </summary>
+        public Spreadsheet(TextReader source)
+        {
+            XmlDocument document = new XmlDocument();
+            document.Load(source);
+
+            //Add the schema to the document.
+            XmlTextReader reader = new XmlTextReader("Spreadsheet.xsd");
+            XmlSchemaSet spreadsheetSchema = new XmlSchemaSet();
+            spreadsheetSchema.Add(null, reader);
+            document.Schemas.Add(spreadsheetSchema);
+
+            //Validate document.
+            document.Validate((sender, args) =>
+            {
+                if (args.Severity == XmlSeverityType.Error)
+                {
+                    throw new SpreadsheetReadException("Error opening file. Invalid schema.");
+                }
+            });
+
+            // TODO: If there is an invalid cell name, or a duplicate cell name, or an invalid formula in the source, throws a SpreadsheetReadException.
+            // TODO: If there's a Formula that causes a circular dependency, throws a SpreadsheetReadException. 
+
+            XmlElement spreadsheetElement = document.GetElementsByTagName("spreadsheet")[0] as XmlElement;
+            _isValid = new Regex(spreadsheetElement.GetAttribute("IsValid"));
+            foreach (XmlElement cell in document.GetElementsByTagName("cell"))
+            {
+                SetContentsOfCell(cell.GetAttribute("name"), cell.GetAttribute("contents"));
+            }
+        }
 
         /// <summary>
         /// True if this spreadsheet has been modified since it was created or saved
         /// (whichever happened most recently); false otherwise.
         /// </summary>
-        public override bool Changed { get; protected set; }
+        public override bool Changed
+        {
+            get
+            {
+                return _changed;
+            }
+            protected set { _changed = value; }
+        }
 
         /// <summary>
         /// Writes the contents of this spreadsheet to dest using an XML format.
@@ -47,18 +112,19 @@ namespace SS
         public override void Save(TextWriter dest)
         {
             XmlDocument document = new XmlDocument();
-
             //Setup xml document with UTF-8 encoding and specified Schema.
             XmlTextReader reader = new XmlTextReader("Spreadsheet.xsd");
-            XmlSchema myschema = XmlSchema.Read(reader, ValidationCallback);
-            document.Schemas.Add(myschema);
+
             XmlDeclaration xmlDeclaration = document.CreateXmlDeclaration("1.0", "UTF-8", null);
             XmlElement root = document.DocumentElement;
             document.InsertBefore(xmlDeclaration, root);
 
+            XmlSchema myschema = XmlSchema.Read(reader, ValidationCallback);
+            document.Schemas.Add(myschema);
+
             //Create the spreadsheet element.
             XmlElement spreadsheet = document.CreateElement("spreadsheet");
-//            spreadsheet.SetAttribute("IsValid", IsValid.ToString());
+            spreadsheet.SetAttribute("IsValid", _isValid.ToString());
 
             //Create the cell elements.
             foreach (var cell in _cells)
@@ -71,7 +137,12 @@ namespace SS
                 spreadsheet.AppendChild(element);
             }
 
+            document.AppendChild(spreadsheet);
+
             //Save the xml document.
+            Changed = false;
+            document.Validate(ValidationCallback);
+
             document.Save(dest);
         }
 
@@ -94,7 +165,11 @@ namespace SS
         /// </summary>
         public override object GetCellValue(string name)
         {
-            throw new NotImplementedException();
+            if (name == null) throw new InvalidNameException();
+            name = name.ToUpper();
+            ValidateCellName(name);
+
+            return _cells.ContainsKey(name) ? _cells[name].GetValue() : string.Empty;
         }
 
         /// <summary>
@@ -159,6 +234,7 @@ namespace SS
             ValidateCellName(name);
 
             Type contentType = GetContentType(content);
+            Changed = true;
             if (contentType == typeof(string)) return SetCellContents(name, content);
             if (contentType == typeof(double)) return SetCellContents(name, double.Parse(content));
             if (contentType == typeof(Formula))

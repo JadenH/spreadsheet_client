@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Schema;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SS;
 using Formulas;
@@ -279,6 +282,143 @@ namespace SpreadsheetTests
             s.SetContentsOfCell("b1", "=c1");
             s.SetContentsOfCell("c1", "=d1");
             s.SetContentsOfCell("d1", "=a1");
+        }
+
+        /// <summary>
+        /// Test that a spreadsheet has changed when setting a cell.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod23()
+        {
+            Spreadsheet s = new Spreadsheet();
+            Assert.IsFalse(s.Changed);
+            s.SetContentsOfCell("a1", "=b1");
+            Assert.IsTrue(s.Changed);
+        }
+
+        static readonly string TestXMLPath = Environment.CurrentDirectory + "/testXML.xml";
+        static readonly string TestXMLPath2 = Environment.CurrentDirectory + "/testXML1.xml";
+
+        static void ValidationCallback(object sender, ValidationEventArgs args)
+        {
+            if (args.Severity == XmlSeverityType.Warning)
+                Assert.Fail("XML Validation Warning: " + args.Message);
+            else if (args.Severity == XmlSeverityType.Error)
+                Assert.Fail("XML Validation Error: " + args.Message);
+
+            Console.WriteLine(args.Message);
+        }
+
+        private XmlDocument LoadTestDocument(string path)
+        {
+            XmlDocument document = new XmlDocument();
+            document.Load(path);
+
+            //Add the schema to the document.
+            XmlTextReader reader = new XmlTextReader("Spreadsheet.xsd");
+            XmlSchemaSet spreadsheetSchema = new XmlSchemaSet();
+            spreadsheetSchema.Add(null, reader);
+
+            document.Schemas.Add(spreadsheetSchema);
+
+            return document;
+        }
+
+        /// <summary>
+        /// Test Saving a xml doc and that it validates against the schema.
+        /// </summary>
+        [TestMethod]
+        public void TestXML1()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("a1", "hello");
+            s.SetContentsOfCell("b1", "=a2");
+            s.SetContentsOfCell("c1", "5");
+
+            //Create the xml.
+            TextWriter writer = File.CreateText(TestXMLPath);
+            s.Save(writer);
+            writer.Close(); // Close the writer to avoid open collision errors.
+
+            //Assert that the document exists.
+            Assert.IsTrue(File.Exists(TestXMLPath));
+
+            //Assert that the document is valid with the schema.
+            XmlDocument document = LoadTestDocument(TestXMLPath);
+            document.Validate(ValidationCallback);
+        }
+
+        /// <summary>
+        /// Test Saving a xml doc and that it opens and reads back in.
+        /// </summary>
+        [TestMethod]
+        public void TestXML2()
+        {
+            TestXML1();
+            TextReader reader = File.OpenText(TestXMLPath);
+            Spreadsheet s = new Spreadsheet(reader);
+            Assert.AreEqual("hello", s.GetCellContents("a1"));
+            Assert.AreEqual("A2", s.GetCellContents("b1").ToString());
+            Assert.AreEqual(5.0, s.GetCellContents("c1"));
+        }
+
+        /// <summary>
+        /// Test Saving a xml doc with a formula and double and that it validates against the schema.
+        /// </summary>
+        [TestMethod]
+        public void TestXML3()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("b1", "=c1+d1");
+            s.SetContentsOfCell("c1", "5");
+
+            //Create the xml.
+            TextWriter writer = File.CreateText(TestXMLPath2);
+            s.Save(writer);
+            writer.Close(); // Close the writer to avoid open collision errors.
+
+            //Assert that the document exists.
+            Assert.IsTrue(File.Exists(TestXMLPath2));
+
+            //Assert that the document is valid with the schema.
+            XmlDocument document = LoadTestDocument(TestXMLPath2);
+            document.Validate(ValidationCallback);
+
+            //Assert that cells are written correctly.
+            foreach (XmlElement cell in document.GetElementsByTagName("cell"))
+            {
+                string cellName = cell.GetAttribute("name");
+                switch (cellName)
+                {
+                    case "B1":
+                        Assert.AreEqual(Regex.Replace(cell.GetAttribute("contents"), @"\s", ""), "=C1+D1");
+                        break;
+                    case "C1":
+                        Assert.AreEqual(cell.GetAttribute("contents"), "5");
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Test get value of a cell.
+        /// </summary>
+        [TestMethod]
+        public void TestSpreadsheetValues1()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("a1", "=1+1");
+            Assert.AreEqual(s.GetCellValue("a1"), 2.0);
+        }
+
+        /// <summary>
+        /// Test get value of an empty cell.
+        /// </summary>
+        [TestMethod]
+        public void TestSpreadsheetValues2()
+        {
+            Spreadsheet s = new Spreadsheet();
+            Assert.AreEqual(s.GetCellValue("a1"), string.Empty);
         }
 
     }
