@@ -32,8 +32,9 @@ namespace SS
         {
             if (name == null) throw new InvalidNameException();
             name = name.ToUpper();
+            ValidateCellName(name);
 
-            return _cells[name].GetCellContents();
+            return _cells.ContainsKey(name) ? _cells[name].GetCellContents() : string.Empty;
         }
 
         /// <summary>
@@ -41,7 +42,7 @@ namespace SS
         /// </summary>
         private void ValidateCellName(string name)
         {
-            Regex regex = new Regex($"[a-zA-Z]+([1-9][0-9]*)", RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline);
+            Regex regex = new Regex("^[a-zA-Z]+([1-9][0-9]*)$");
             if (!regex.IsMatch(name)) throw new InvalidNameException();
         }
 
@@ -60,12 +61,12 @@ namespace SS
             if (name == null) throw new InvalidNameException();
             name = name.ToUpper();
             ValidateCellName(name);
+            if (_cells.ContainsKey(name)) _cells.Remove(name);
 
             Cell cell = new Cell(number);
             _cells.Add(name, cell);
 
-            HashSet<string> dependents = new HashSet<string>(_dependencyGraph.GetDependees(name).ToList()) { name };
-            return dependents;
+            return new HashSet<string>(GetDependeesRecursively(name)) { name };
         }
 
         /// <summary>
@@ -84,14 +85,17 @@ namespace SS
         {
             if (text == null) throw new ArgumentNullException(nameof(text));
             if (name == null) throw new InvalidNameException();
-            name = name.ToUpper();
-            ValidateCellName(name);
+            if (_cells.ContainsKey(name)) _cells.Remove(name);
+            if (text != string.Empty)
+            {
+                name = name.ToUpper();
+                ValidateCellName(name);
 
-            Cell cell = new Cell(text);
-            _cells.Add(name, cell);
+                Cell cell = new Cell(text);
+                _cells.Add(name, cell);
+            }
 
-            HashSet<string> dependents = new HashSet<string>(_dependencyGraph.GetDependees(name).ToList()) { name };
-            return dependents;
+            return new HashSet<string>(GetDependeesRecursively(name)) { name };
         }
 
         /// <summary>
@@ -131,13 +135,23 @@ namespace SS
                 throw new CircularException();
             }
 
+            if (_cells.ContainsKey(name)) _cells.Remove(name);
+
             Cell cell = new Cell(formula);
             _cells.Add(name, cell);
 
-
-            HashSet<string> dependents = new HashSet<string>(_dependencyGraph.GetDependees(name).ToList()) {name};
-            return dependents;
+            return new HashSet<string>(GetDependeesRecursively(name)){name};
         }
+
+        private HashSet<string> GetDependeesRecursively(string name)
+        {
+            HashSet<string> dependees = new HashSet<string>(_dependencyGraph.GetDependees(name));
+            foreach (var node in _dependencyGraph.GetDependees(name))
+            {
+                dependees.UnionWith(new HashSet<string>(GetDependeesRecursively(node)));
+            }
+            return dependees;
+        } 
 
         /// <summary>
         /// If name is null, throws an ArgumentNullException.
