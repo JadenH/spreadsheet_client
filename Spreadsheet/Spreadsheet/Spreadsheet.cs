@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -73,9 +74,6 @@ namespace SS
                     throw new SpreadsheetReadException("Error opening file. Invalid schema.");
                 }
             });
-
-            // TODO: If there is an invalid cell name, or a duplicate cell name, or an invalid formula in the source, throws a SpreadsheetReadException.
-            // TODO: If there's a Formula that causes a circular dependency, throws a SpreadsheetReadException. 
 
             XmlElement spreadsheetElement = document.GetElementsByTagName("spreadsheet")[0] as XmlElement;
             _isValid = new Regex(spreadsheetElement.GetAttribute("IsValid"));
@@ -176,15 +174,13 @@ namespace SS
             document.Save(dest);
         }
 
-
+        /// <summary>
+        /// Used as the callback for validating xml against the schema.
+        /// </summary>
         static void ValidationCallback(object sender, ValidationEventArgs args)
         {
-            if (args.Severity == XmlSeverityType.Warning)
-                Console.Write("WARNING: ");
-            else if (args.Severity == XmlSeverityType.Error)
-                Console.Write("ERROR: ");
-
-            Console.WriteLine(args.Message);
+            Debug.Assert(args.Severity != XmlSeverityType.Warning);
+            Debug.Assert(args.Severity != XmlSeverityType.Error);
         }
 
         /// <summary>
@@ -265,7 +261,6 @@ namespace SS
 
             Type contentType = GetContentType(content);
             Changed = true;
-            if (contentType == typeof(string)) return SetCellContents(name, content);
             if (contentType == typeof(double)) return SetCellContents(name, double.Parse(content));
             if (contentType == typeof(Formula))
             {
@@ -282,8 +277,7 @@ namespace SS
                 //If our formula has no tokens.
                 return SetCellContents(name, new Formula());
             }
-
-            return new HashSet<string>(GetDependeesRecursively(name)) { name };
+            return SetCellContents(name, content);
         }
 
         /// <summary>
@@ -303,7 +297,7 @@ namespace SS
         private void ValidateCellName(string name)
         {
             if (!new Regex(_validCellNamePattern).IsMatch(name)) throw new InvalidNameException();
-
+            if (!_isValid.IsMatch(name.ToUpper())) throw new InvalidNameException();
         }
 
         /// <summary>
@@ -390,7 +384,7 @@ namespace SS
             {
                 foreach (var token in formula.GetVariables())
                 {
-                    _dependencyGraph.RemoveDependency(name, token);
+                    _dependencyGraph.RemoveDependency(name, token.ToUpper());
                 }
                 throw new CircularException();
             }

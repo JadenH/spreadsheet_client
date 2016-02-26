@@ -310,8 +310,33 @@ namespace SpreadsheetTests
             Assert.IsTrue(s.Changed);
         }
 
+        /// <summary>
+        /// Test that a spreadsheet will throw a formula format exception.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void TestMethod25()
+        {
+            Spreadsheet s = new Spreadsheet();
+            s.SetContentsOfCell("a1", "=(");
+        }
+
+        /// <summary>
+        /// Test that a spreadsheet will throw a invalid name exception with a regex passed in.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void TestMethod26()
+        {
+            Spreadsheet s = new Spreadsheet(new Regex("[0]"));
+            s.SetContentsOfCell("a1", "=A2");
+        }
+
         static readonly string TestXMLPath = Environment.CurrentDirectory + "/testXML.xml";
         static readonly string TestXMLPath2 = Environment.CurrentDirectory + "/testXML1.xml";
+        static readonly string TestXMLPath3 = Environment.CurrentDirectory + "/testXML2.xml";
+        static readonly string TestXMLPath4 = Environment.CurrentDirectory + "/testXML3.xml";
+        static readonly string TestXMLPath5 = Environment.CurrentDirectory + "/testXML4.xml";
 
         static void ValidationCallback(object sender, ValidationEventArgs args)
         {
@@ -336,6 +361,40 @@ namespace SpreadsheetTests
             document.Schemas.Add(spreadsheetSchema);
 
             return document;
+        }
+
+        private void CreateMockDocument(Dictionary<string, string> cells, string path, bool breakit = false)
+        {
+            XmlDocument document = new XmlDocument();
+            //Setup xml document with UTF-8 encoding and specified Schema.
+            XmlTextReader reader = new XmlTextReader("Spreadsheet.xsd");
+
+            XmlDeclaration xmlDeclaration = document.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlElement root = document.DocumentElement;
+            document.InsertBefore(xmlDeclaration, root);
+
+            XmlSchema myschema = XmlSchema.Read(reader, ValidationCallback);
+            document.Schemas.Add(myschema);
+
+            //Create the spreadsheet element.
+            XmlElement spreadsheet = document.CreateElement("spreadsheet");
+            spreadsheet.SetAttribute("IsValid", ".*");
+
+            foreach (var cell in cells)
+            {
+                XmlElement element = document.CreateElement("cell");
+                if (!breakit) element.SetAttribute("name", cell.Key);
+                element.SetAttribute("contents", cell.Value);
+                spreadsheet.AppendChild(element);
+            }
+
+            document.AppendChild(spreadsheet);
+
+            //Create the xml.
+            TextWriter writer = File.CreateText(path);
+            //Assert that the document is valid with the schema.
+            document.Save(writer);
+            writer.Close(); // Close the writer to avoid open collision errors.
         }
 
         /// <summary>
@@ -412,6 +471,63 @@ namespace SpreadsheetTests
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Test opening an invalid xml document with a circular dependency.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadException))]
+        public void TestXML4()
+        {
+            //Create some cells.
+            Dictionary<string, string> cells = new Dictionary<string, string>()
+            {
+                {"A1", "=A2"},
+                {"A2", "=A1"}
+            };
+            CreateMockDocument(cells, TestXMLPath3);
+
+            TextReader reader2 = File.OpenText(TestXMLPath3);
+            Spreadsheet s = new Spreadsheet(reader2);
+        }
+
+        /// <summary>
+        /// Test opening an invalid xml document with a FormulaFormatException.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadException))]
+        public void TestXML5()
+        {
+            //Create some cells.
+            Dictionary<string, string> cells = new Dictionary<string, string>()
+            {
+                {"A1", "=A2"},
+                {"A2", "=(("}
+            };
+            CreateMockDocument(cells, TestXMLPath4);
+
+            TextReader reader = File.OpenText(TestXMLPath4);
+            Spreadsheet s = new Spreadsheet(reader);
+        }
+
+        /// <summary>
+        /// Test opening an invalid xml document with a Invalid Schema.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadException))]
+        public void TestXML6()
+        {
+            //Create some cells.
+            Dictionary<string, string> cells = new Dictionary<string, string>()
+            {
+                {"A1", "=A2"},
+                {"A2", "=A3"}
+            };
+            CreateMockDocument(cells, TestXMLPath5, true);
+
+            TextReader reader = File.OpenText(TestXMLPath5);
+            Spreadsheet s = new Spreadsheet(reader);
         }
 
         /// <summary>
