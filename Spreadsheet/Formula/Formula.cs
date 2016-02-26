@@ -355,7 +355,8 @@ namespace Formulas
         public override string ToString()
         {
             if (_tokens == null) _tokens = new[] { "0" };
-            return _tokens.Aggregate("", (current, token) => current + token + " ");
+            string result = _tokens.Aggregate("", (current, token) => current + token + " ");
+            return result.Trim();
         }
 
         public ISet<string> GetVariables()
