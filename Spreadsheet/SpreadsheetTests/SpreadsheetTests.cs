@@ -207,7 +207,7 @@ namespace SpreadsheetTests
         }
 
         /// <summary>
-        /// Test GetNamesOfAllNonemptyCells.
+        /// Test Circular dependency.
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(CircularException))]
