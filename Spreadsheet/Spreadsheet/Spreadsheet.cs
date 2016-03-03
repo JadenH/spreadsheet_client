@@ -9,7 +9,7 @@ using System.Xml.Schema;
 using Dependencies;
 using Formulas;
 
-namespace SS
+namespace SS 
 {
     /// <summary>
     /// Inherits from Abstract Spreadsheet. Contains cells and dependencies of cells.
@@ -273,7 +273,7 @@ namespace SS
                 {
                     return SetCellContents(name,
                         new Formula(match.Groups[1].Value, s => s.ToUpper(),
-                            s => new Regex(_validCellNamePattern).IsMatch(name)));
+                            s => new Regex(_validCellNamePattern).IsMatch(s)));
                 }
                 //If our formula has no tokens.
                 return SetCellContents(name, new Formula());
@@ -365,6 +365,7 @@ namespace SS
                 _cells.Add(name, cell);
                 RecalculateCells(name);
             }
+            
 
             return new HashSet<string>(GetCellsToRecalculate(name)) { name };
         }
@@ -390,6 +391,14 @@ namespace SS
 
             foreach (var token in formula.GetVariables())
             {
+                try
+                {
+                    ValidateCellName(token.ToUpper());
+                }
+                catch (Exception e)
+                {
+                    throw new FormulaFormatException(e.Message);
+                }
                 _dependencyGraph.AddDependency(token.ToUpper(), name);
             }
 
@@ -408,7 +417,7 @@ namespace SS
 
             if (_cells.ContainsKey(name)) _cells.Remove(name);
 
-            Cell cell = new Cell(formula, _cells);
+            Cell cell = new Cell(formula);
             _cells.Add(name, cell);
 
             RecalculateCells(name);

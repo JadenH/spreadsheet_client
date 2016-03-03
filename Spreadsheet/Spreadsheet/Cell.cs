@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Formulas;
 
 namespace SS
@@ -14,14 +15,9 @@ namespace SS
         /// <summary>
         /// Cell constructor for a formula.
         /// </summary>
-        public Cell(Formula cellContents, Dictionary<string, Cell> cells)
+        public Cell(Formula cellContents)
         {
             _cellContents = cellContents;
-            _value = cellContents.Evaluate(c =>
-            {
-                if (!cells.ContainsKey(c)) return 0;
-                return (double) cells[c].GetValue(cells);
-            });
         }
 
         /// <summary>
@@ -53,14 +49,7 @@ namespace SS
         /// </summary>
         public void Recalculate(Dictionary<string, Cell> cells)
         {
-            if (!(_cellContents is Formula)) return;
-            Formula cellContents = (Formula)_cellContents;
-            _value = cellContents.Evaluate(c =>
-            {
-                if (!cells.ContainsKey(c)) return 0;
-                if (cells[c]._cellContents is string) return 0;
-                return (double)cells[c].GetValue(cells);
-            });
+            _value = null;
         }
 
         /// <summary>
@@ -69,12 +58,17 @@ namespace SS
         public object GetValue(Dictionary<string, Cell> cells)
         {
             if (!(_cellContents is Formula)) return _cellContents;
+            if (_value != null) return _value;
             Formula cellContents = (Formula)_cellContents;
-            return _value ?? (_value = cellContents.Evaluate(c =>
+            try
             {
-                if (!cells.ContainsKey(c)) return 0;
-                return (double) cells[c].GetValue(cells);
-            }));
+                _value = cellContents.Evaluate(c => (double) cells[c].GetValue(cells));
+            }
+            catch (Exception e)
+            {
+                return new FormulaError(e.Message);
+            }
+            return _value;
         }
 
     }
