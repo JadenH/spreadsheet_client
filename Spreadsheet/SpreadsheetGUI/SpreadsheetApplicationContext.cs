@@ -12,7 +12,7 @@ namespace SpreadsheetGUI
     {
         // Number of open forms
         private int windowCount = 0;
-        public ISpreadsheetView window;
+        public bool IsUnitTest;
 
         // Singleton ApplicationContext
         private static SpreadsheetApplicationContext context;
@@ -43,18 +43,16 @@ namespace SpreadsheetGUI
         public void RunNew()
         {
             // Create the window and the controller
-            if (window == null) window = new SpreadsheetWindow();
-            new Controller(window);
+            SpreadsheetWindow spreadsheetWindow = new SpreadsheetWindow();
+            new Controller(spreadsheetWindow);
 
             // One more form is running
             windowCount++;
 
-            if (window is SpreadsheetWindow)
+            // When this form closes, we want to find out
+            spreadsheetWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+            if (!IsUnitTest)
             {
-                SpreadsheetWindow spreadsheetWindow = window as SpreadsheetWindow;
-                // When this form closes, we want to find out
-                spreadsheetWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
-
                 // Run the form
                 spreadsheetWindow.Show();
             }
@@ -67,23 +65,21 @@ namespace SpreadsheetGUI
         public void RunNew(string filePath)
         {
             // Create the window and the controller
-
-            if (window == null) window = new SpreadsheetWindow();
-            Controller spreadsheetController = new Controller(window);
+            SpreadsheetWindow spreadsheetWindow = new SpreadsheetWindow();
+            Controller spreadsheetController = new Controller(spreadsheetWindow);
             TextReader textReader = new StreamReader(filePath);
             spreadsheetController.ChangeSpreadsheet(new Spreadsheet(textReader));
             spreadsheetController.SetSavedPath(filePath);
             textReader.Close();
 
+
             // One more form is running
             windowCount++;
 
-            if (window is SpreadsheetWindow)
+            // When this form closes, we want to find out
+            spreadsheetWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+            if (!IsUnitTest)
             {
-                SpreadsheetWindow spreadsheetWindow = window as SpreadsheetWindow;
-                // When this form closes, we want to find out
-                spreadsheetWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
-
                 // Run the form
                 spreadsheetWindow.Show();
             }

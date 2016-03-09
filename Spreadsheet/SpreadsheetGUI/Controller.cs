@@ -133,10 +133,6 @@ namespace SpreadsheetGUI
                     MessageBox.Show($"An error occured saving the file.\n{e.Message}", @"Error Saving File");
                 }
             }
-            else
-            {
-                MessageBox.Show("File was not saved.\nFile name or directory invalid.", @"Error Saving File");
-            }
         }
 
         /// <summary>

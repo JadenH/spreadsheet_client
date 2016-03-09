@@ -98,7 +98,7 @@ namespace ControllerTester
         public void TestMethod6()
         {
             _setSelectionRan = false;
-            SpreadsheetApplicationContext.GetContext().window = this; // Prevents it from trying to create a Window.
+            SpreadsheetApplicationContext.GetContext().IsUnitTest = true; // Prevents it from trying to create a Window.
             Controller controller = new Controller(this);
             Spreadsheet s = new Spreadsheet();
             controller.ChangeSpreadsheet(s);
@@ -157,7 +157,7 @@ namespace ControllerTester
         public void TestMethod10()
         {
             _cells = new Dictionary<Tuple<int, int>, string>();
-            SpreadsheetApplicationContext.GetContext().window = this; // Prevents it from trying to create a Window.
+            SpreadsheetApplicationContext.GetContext().IsUnitTest = true; // Prevents it from trying to create a Window.
             Controller controller = new Controller(this);
             Spreadsheet s = new Spreadsheet();
 
@@ -180,7 +180,7 @@ namespace ControllerTester
         [TestMethod]
         public void TestMethod12()
         {
-            SpreadsheetApplicationContext.GetContext().window = this; // Prevents it from trying to create a Window.
+            SpreadsheetApplicationContext.GetContext().IsUnitTest = true; // Prevents it from trying to create a Window.
             Controller controller = new Controller(this);
             CellValueBoxTextChange.Invoke("=((");
 

@@ -103,6 +103,7 @@ namespace SS
                     throw new SpreadsheetReadException("Error in spreadsheet: " + e.Message);
                 }
             }
+            Changed = false;
         }
 
         /// <summary>
