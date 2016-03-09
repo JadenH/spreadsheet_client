@@ -10,10 +10,10 @@ namespace SpreadsheetGUI
 {
     public class Controller
     {
-        private ISpreadsheetView _window;
+        protected ISpreadsheetView _window;
 
         private Spreadsheet _spreadsheet;
-        private GuiCell _selectedCell;
+        public GuiCell _selectedCell;
         private string _spreadsheetName = "New Spreadsheet";
         private string _savePath;
 
@@ -39,7 +39,7 @@ namespace SpreadsheetGUI
             _window.HandleHelp += WindowOnHandleHelp;
 
             //Setup defaults
-            _window.SetSelection(0, 0);
+            _window.SetSelection(_selectedCell.CellColumn, _selectedCell.CellRow);
             UpdateInfoBar($"{_selectedCell.CellName}: { _selectedCell.GetCellValue(_spreadsheet)}", Color.White);
             UpdateCellNameText();
         }
@@ -47,7 +47,7 @@ namespace SpreadsheetGUI
         /// <summary>
         /// Creates a message box containing simple instructions about using the spreadsheet application.
         /// </summary>
-        private void WindowOnHandleHelp()
+        public void WindowOnHandleHelp()
         {
             //References the Resources in the project.
             MessageBox.Show(Resources.HelpInfo, @"Help",
@@ -170,7 +170,7 @@ namespace SpreadsheetGUI
         /// <summary>
         /// Handles creating a new document.
         /// </summary>
-        private void CreateNew()
+        public void CreateNew()
         {
             SpreadsheetApplicationContext.GetContext().RunNew();
         }

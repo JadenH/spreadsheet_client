@@ -10,7 +10,7 @@ namespace SpreadsheetGUI
     /// Simple struct that will take a cell name (A1) and convert to a cell row/column. Also takes a cell column/row
     /// and converts it to a cell name (A1). Given a spreadsheet, it will return a value.
     /// </summary>
-    struct GuiCell
+    public struct GuiCell
     {
         public string CellName;
         public int CellColumn;

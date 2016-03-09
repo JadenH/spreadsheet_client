@@ -25,7 +25,7 @@ namespace SpreadsheetGUI
             SpreadsheetData.SelectionChanged += SpreadsheetDataOnSelectionChanged;
         }
 
-        private void CellValueBoxOnTextChanged(dynamic sender, EventArgs eventArgs)
+        protected void CellValueBoxOnTextChanged(dynamic sender, EventArgs eventArgs)
         {
             CellValueBoxTextChange?.Invoke(sender.Text);
         }
