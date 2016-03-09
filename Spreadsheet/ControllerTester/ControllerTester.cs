@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Dynamic;
+using System.IO;
 using System.Windows.Forms;
+using Formulas;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpreadsheetGUI;
 using SS;
@@ -9,6 +13,7 @@ using SS;
 namespace ControllerTester
 {
     [TestClass]
+    [ExcludeFromCodeCoverage]
     public class ControllerTester : ISpreadsheetView
     {
 
@@ -21,9 +26,9 @@ namespace ControllerTester
             Controller controller = new Controller(this);
             CellSelectionChange.Invoke(0,1);
             
-            Assert.AreEqual(controller._selectedCell.CellColumn, 0);
-            Assert.AreEqual(controller._selectedCell.CellRow, 1);
-            Assert.AreEqual(controller._selectedCell.CellName, "A2");
+            Assert.AreEqual(controller.SelectedCell.CellColumn, 0);
+            Assert.AreEqual(controller.SelectedCell.CellRow, 1);
+            Assert.AreEqual(controller.SelectedCell.CellName, "A2");
         }
 
         /// <summary>
@@ -36,15 +41,15 @@ namespace ControllerTester
             Spreadsheet s = new Spreadsheet();
             s.SetContentsOfCell("A2", "testing");
 
-            Assert.AreEqual(controller._selectedCell.CellColumn, 0);
-            Assert.AreEqual(controller._selectedCell.CellRow, 0);
-            Assert.AreEqual(controller._selectedCell.GetCellValue(s), "");
+            Assert.AreEqual(controller.SelectedCell.CellColumn, 0);
+            Assert.AreEqual(controller.SelectedCell.CellRow, 0);
+            Assert.AreEqual(controller.SelectedCell.GetCellValue(s), "");
 
             CellSelectionChange(0, 1);
 
-            Assert.AreEqual(controller._selectedCell.CellColumn, 0);
-            Assert.AreEqual(controller._selectedCell.CellRow, 1);
-            Assert.AreEqual(controller._selectedCell.GetCellValue(s), "testing");
+            Assert.AreEqual(controller.SelectedCell.CellColumn, 0);
+            Assert.AreEqual(controller.SelectedCell.CellRow, 1);
+            Assert.AreEqual(controller.SelectedCell.GetCellValue(s), "testing");
         }
 
         /// <summary>
@@ -58,7 +63,7 @@ namespace ControllerTester
             controller.ChangeSpreadsheet(s);
             CellValueBoxTextChange.Invoke("=1+1");
 
-            Assert.AreEqual("2", controller._selectedCell.GetCellValue(s));
+            Assert.AreEqual("2", controller.SelectedCell.GetCellValue(s));
         }
 
         /// <summary>
@@ -86,19 +91,21 @@ namespace ControllerTester
             Assert.IsTrue(_setSelectionRan);
         }
 
-//        /// <summary>
-//        /// Test creating a new document.
-//        /// </summary>
-//        [TestMethod]
-//        public void TestMethod6()
-//        {
-//            Controller controller = new Controller(this);
-//            Spreadsheet s = new Spreadsheet();
-//            controller.ChangeSpreadsheet(s);
-//            CreateNew.Invoke();
-//
-//            Assert.IsTrue(_setSelectionRan);
-//        }
+        /// <summary>
+        /// Test creating a new document.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod6()
+        {
+            _setSelectionRan = false;
+            SpreadsheetApplicationContext.GetContext().window = this; // Prevents it from trying to create a Window.
+            Controller controller = new Controller(this);
+            Spreadsheet s = new Spreadsheet();
+            controller.ChangeSpreadsheet(s);
+            CreateNew.Invoke();
+
+            Assert.IsTrue(_setSelectionRan);
+        }
 
         /// <summary>
         /// Test changing the saved path.
@@ -114,6 +121,9 @@ namespace ControllerTester
             Assert.AreEqual("testing", _title);
         }
 
+        /// <summary>
+        /// Test closing from controller.
+        /// </summary>
         [TestMethod]
         public void TestMethod8()
         {
@@ -122,6 +132,59 @@ namespace ControllerTester
             DoClose();
 
             Assert.IsTrue(_closed);
+        }
+
+        static readonly string TestSaveFilePath1 = Environment.CurrentDirectory + "/test1.ss";
+        static readonly string TestSaveFilePath2 = Environment.CurrentDirectory + "/test2.ss";
+
+        /// <summary>
+        /// Test saving a file through the controller.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod9()
+        {
+            Controller controller = new Controller(this);
+            Spreadsheet s = new Spreadsheet();
+            controller.HandleSave(TestSaveFilePath1);
+
+            Assert.IsTrue(File.Exists(TestSaveFilePath1));
+        }
+
+        /// <summary>
+        /// Test opening (and saving) a file through the controller.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod10()
+        {
+            _cells = new Dictionary<Tuple<int, int>, string>();
+            SpreadsheetApplicationContext.GetContext().window = this; // Prevents it from trying to create a Window.
+            Controller controller = new Controller(this);
+            Spreadsheet s = new Spreadsheet();
+
+            s.SetContentsOfCell("A1", "testing!");
+
+            controller.ChangeSpreadsheet(s);
+            controller.HandleSave(TestSaveFilePath2);
+            controller.HandleOpen(TestSaveFilePath2);
+
+            //Test file exists and was open.
+            Assert.IsTrue(File.Exists(TestSaveFilePath1));
+            Assert.AreEqual("test2", _title);
+
+            Assert.AreEqual("testing!", controller.Spreadsheet.GetCellValue("A1"));
+        }
+
+        /// <summary>
+        /// Test setting the cell value bar to an invalid formula. The cell value should not have changed.
+        /// </summary>
+        [TestMethod]
+        public void TestMethod12()
+        {
+            SpreadsheetApplicationContext.GetContext().window = this; // Prevents it from trying to create a Window.
+            Controller controller = new Controller(this);
+            CellValueBoxTextChange.Invoke("=((");
+
+            Assert.AreEqual(string.Empty, controller.SelectedCell.GetCellContents(controller.Spreadsheet));
         }
 
         public event Func<bool> HandleClose;
@@ -143,7 +206,7 @@ namespace ControllerTester
             _setSelectionRan = true;
         }
 
-        private bool _updateCellRan;
+        private Dictionary<Tuple<int, int>, string> _cells;   
         public void UpdateCell(int col, int row, string value)
         {
         }

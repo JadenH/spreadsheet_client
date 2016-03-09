@@ -12,8 +12,8 @@ namespace SpreadsheetGUI
     {
         protected ISpreadsheetView _window;
 
-        private Spreadsheet _spreadsheet;
-        public GuiCell _selectedCell;
+        public Spreadsheet Spreadsheet;
+        public GuiCell SelectedCell;
         private string _spreadsheetName = "New Spreadsheet";
         private string _savePath;
 
@@ -25,22 +25,22 @@ namespace SpreadsheetGUI
         public Controller(ISpreadsheetView window)
         {
             _window = window;
-            _selectedCell = new GuiCell(0, 0);
-            _spreadsheet = new Spreadsheet();
+            SelectedCell = new GuiCell(0, 0);
+            Spreadsheet = new Spreadsheet();
 
             //Event Subscriptions
             _window.CellValueBoxTextChange += CellValueBarChanged;
             _window.CellSelectionChange += SpreadsheetSelectionChanged;
             _window.CreateNew += CreateNew;
-            _window.HandleOpen += HandleOpen;
+            _window.HandleOpen += () => HandleOpen(null);
             _window.HandleSave += () => HandleSave(_savePath);
             _window.HandleSaveAs += () => HandleSave(null);
             _window.HandleClose += HandleClose;
             _window.HandleHelp += WindowOnHandleHelp;
 
             //Setup defaults
-            _window.SetSelection(_selectedCell.CellColumn, _selectedCell.CellRow);
-            UpdateInfoBar($"{_selectedCell.CellName}: { _selectedCell.GetCellValue(_spreadsheet)}", Color.White);
+            _window.SetSelection(SelectedCell.CellColumn, SelectedCell.CellRow);
+            UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
             UpdateCellNameText();
         }
 
@@ -60,7 +60,7 @@ namespace SpreadsheetGUI
         /// <param name="spreadsheet"></param>
         public void ChangeSpreadsheet(Spreadsheet spreadsheet)
         {
-            _spreadsheet = spreadsheet;
+            Spreadsheet = spreadsheet;
             UpdateCells();
         }
 
@@ -70,7 +70,7 @@ namespace SpreadsheetGUI
         /// </summary>
         private bool HandleClose()
         {
-            if (_spreadsheet.Changed)
+            if (Spreadsheet.Changed)
             {
                 var response = MessageBox.Show($"Want to save your changes for {_spreadsheetName} before closing?", @"Spreadsheet",
                     MessageBoxButtons.YesNoCancel);
@@ -92,7 +92,7 @@ namespace SpreadsheetGUI
         /// <summary>
         /// Creates a save window dialog for the user to select a path in which to save the file to.
         /// </summary>
-        private string SaveWindow()
+        private string SaveFileDialog()
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog
             {
@@ -115,16 +115,16 @@ namespace SpreadsheetGUI
         /// <summary>
         /// Saves the spreadsheet to the given path in the parameter. 
         /// </summary>
-        private void HandleSave(string path)
+        public void HandleSave(string path)
         {
             //If we don't have a path to save to we should get one from a save dialog.
-            if (path == null) path = SaveWindow();
+            if (path == null) path = SaveFileDialog();
             if (path != null)
             {
                 try
                 {
                     TextWriter textWriter = new StreamWriter(path);
-                    _spreadsheet.Save(textWriter);
+                    Spreadsheet.Save(textWriter);
                     textWriter.Close();
                     SetSavedPath(path);
                 }
@@ -140,10 +140,10 @@ namespace SpreadsheetGUI
         }
 
         /// <summary>
-        /// Handles opening a file and creates a new window with the spreadsheet being opened.
-        /// If the spreadsheet fails to open a MessageBox is displayed with an appropriate error message.
+        /// Creates a open window dialog for the user to select a file to be opened.
         /// </summary>
-        private void HandleOpen()
+        /// <returns>The path of the selected file.</returns>
+        private string OpenFileDialog()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
@@ -151,14 +151,26 @@ namespace SpreadsheetGUI
                 FilterIndex = 1,
                 Multiselect = false
             };
-
             DialogResult dialogResult = openFileDialog.ShowDialog();
-
             if (dialogResult == DialogResult.OK)
+            {
+                return openFileDialog.FileName;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Handles opening a file and creates a new window with the spreadsheet being opened.
+        /// If the spreadsheet fails to open a MessageBox is displayed with an appropriate error message.
+        /// </summary>
+        public void HandleOpen(string path)
+        {
+            if (path == null) path = OpenFileDialog();
+            if (path != null)
             {
                 try
                 {
-                    SpreadsheetApplicationContext.GetContext().RunNew(openFileDialog.FileName);
+                    SpreadsheetApplicationContext.GetContext().RunNew(path);
                 }
                 catch (Exception e)
                 {
@@ -182,9 +194,9 @@ namespace SpreadsheetGUI
         /// </summary>
         private void SpreadsheetSelectionChanged(int col, int row)
         {
-            _selectedCell = new GuiCell(col, row);
-            _window.CellValueBoxText = _selectedCell.GetCellContents(_spreadsheet);
-            UpdateInfoBar($"{_selectedCell.CellName}: { _selectedCell.GetCellValue(_spreadsheet)}", Color.White);
+            SelectedCell = new GuiCell(col, row);
+            _window.CellValueBoxText = SelectedCell.GetCellContents(Spreadsheet);
+            UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
             UpdateCellNameText();
         }
 
@@ -198,8 +210,8 @@ namespace SpreadsheetGUI
             _window.InfoBarText = string.Empty;
             try
             {
-                UpdateCells(_spreadsheet.SetContentsOfCell(_selectedCell.CellName, value));
-                UpdateInfoBar($"{_selectedCell.CellName}: { _selectedCell.GetCellValue(_spreadsheet)}", Color.White);
+                UpdateCells(Spreadsheet.SetContentsOfCell(SelectedCell.CellName, value));
+                UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
                 _window.SetTitle(_spreadsheetName + "*");
             }
             catch (Exception e)
@@ -219,7 +231,7 @@ namespace SpreadsheetGUI
             foreach (var cellName in cellNames)
             {
                 GuiCell cell = new GuiCell(cellName);
-                _window.UpdateCell(cell.CellColumn, cell.CellRow, cell.GetCellValue(_spreadsheet));
+                _window.UpdateCell(cell.CellColumn, cell.CellRow, cell.GetCellValue(Spreadsheet));
             }
         }
 
@@ -228,7 +240,7 @@ namespace SpreadsheetGUI
         /// </summary>
         private void UpdateCells()
         {
-            UpdateCells(_spreadsheet.GetNamesOfAllNonemptyCells());
+            UpdateCells(Spreadsheet.GetNamesOfAllNonemptyCells());
         }
 
         /// <summary>
@@ -245,7 +257,7 @@ namespace SpreadsheetGUI
         /// </summary>
         private void UpdateCellNameText()
         {
-            _window.SelectedCellText = _selectedCell.CellName;
+            _window.SelectedCellText = SelectedCell.CellName;
         }
 
         /// <summary>

@@ -8,10 +8,11 @@ namespace SpreadsheetGUI
     /// Keeps track of how many top-level forms are running, shuts down
     /// the application when there are no more.
     /// </summary>
-    class SpreadsheetApplicationContext : ApplicationContext
+    public class SpreadsheetApplicationContext : ApplicationContext
     {
         // Number of open forms
         private int windowCount = 0;
+        public ISpreadsheetView window;
 
         // Singleton ApplicationContext
         private static SpreadsheetApplicationContext context;
@@ -42,17 +43,21 @@ namespace SpreadsheetGUI
         public void RunNew()
         {
             // Create the window and the controller
-            SpreadsheetWindow window = new SpreadsheetWindow();
+            if (window == null) window = new SpreadsheetWindow();
             new Controller(window);
 
             // One more form is running
             windowCount++;
 
-            // When this form closes, we want to find out
-            window.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+            if (window is SpreadsheetWindow)
+            {
+                SpreadsheetWindow spreadsheetWindow = window as SpreadsheetWindow;
+                // When this form closes, we want to find out
+                spreadsheetWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
 
-            // Run the form
-            window.Show();
+                // Run the form
+                spreadsheetWindow.Show();
+            }
         }
 
         /// <summary>
@@ -62,7 +67,8 @@ namespace SpreadsheetGUI
         public void RunNew(string filePath)
         {
             // Create the window and the controller
-            SpreadsheetWindow window = new SpreadsheetWindow();
+
+            if (window == null) window = new SpreadsheetWindow();
             Controller spreadsheetController = new Controller(window);
             TextReader textReader = new StreamReader(filePath);
             spreadsheetController.ChangeSpreadsheet(new Spreadsheet(textReader));
@@ -72,11 +78,15 @@ namespace SpreadsheetGUI
             // One more form is running
             windowCount++;
 
-            // When this form closes, we want to find out
-            window.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+            if (window is SpreadsheetWindow)
+            {
+                SpreadsheetWindow spreadsheetWindow = window as SpreadsheetWindow;
+                // When this form closes, we want to find out
+                spreadsheetWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
 
-            // Run the form
-            window.Show();
+                // Run the form
+                spreadsheetWindow.Show();
+            }
         }
     }
 }
