@@ -16,10 +16,13 @@ namespace SpreadsheetGUI
         public event Action HandleOpen;
         public event Action HandleSave;
         public event Action HandleSaveAs;
+        public event Action HandleHelp;
 
         public SpreadsheetWindow()
         {
             InitializeComponent();
+            CellValueBox.TextChanged += CellValueBoxOnTextChanged;
+            SpreadsheetData.SelectionChanged += SpreadsheetDataOnSelectionChanged;
         }
 
         private void CellValueBoxOnTextChanged(dynamic sender, EventArgs eventArgs)
@@ -103,6 +106,11 @@ namespace SpreadsheetGUI
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             HandleSave?.Invoke();
+        }
+
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            HandleHelp?.Invoke();
         }
     }
 }

@@ -6,6 +6,10 @@ using SS;
 
 namespace SpreadsheetGUI
 {
+    /// <summary>
+    /// Simple struct that will take a cell name (A1) and convert to a cell row/column. Also takes a cell column/row
+    /// and converts it to a cell name (A1). Given a spreadsheet, it will return a value.
+    /// </summary>
     struct GuiCell
     {
         public string CellName;
@@ -13,6 +17,9 @@ namespace SpreadsheetGUI
         public int CellRow;
         const string Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+        /// <summary>
+        /// Takes a row and a column and will convert to a cell name.
+        /// </summary>
         public GuiCell(int column, int row)
         {
             //Setup the struct
@@ -24,6 +31,10 @@ namespace SpreadsheetGUI
             CellName = GetCellName(column, row);
         }
 
+        /// <summary>
+        /// Takes a cellname and will convert to row/col.
+        /// </summary>
+        /// <param name="cellName"></param>
         public GuiCell(string cellName)
         {
             //Setup the struct
@@ -35,6 +46,9 @@ namespace SpreadsheetGUI
             GetCellIndex(cellName);
         }
 
+        /// <summary>
+        /// Returns the cell name.
+        /// </summary>
         private string GetCellName(int column, int row)
         {
             string cellName = string.Empty;
@@ -47,6 +61,9 @@ namespace SpreadsheetGUI
             return cellName;
         }
 
+        /// <summary>
+        /// Calculates the cells row and column given a cell name.
+        /// </summary>
         private void GetCellIndex(string CellName)
         {
             Match rowMatch = new Regex("([0-9]+)").Match(CellName);
@@ -57,6 +74,9 @@ namespace SpreadsheetGUI
             CellRow = int.Parse(rowMatch.Groups[0].Value)-1;
         }
 
+        /// <summary>
+        /// Returns the cell value from a given spreadsheet.
+        /// </summary>
         public string GetCellValue(Spreadsheet spreadsheet)
         {
             var cellValue = spreadsheet.GetCellValue(CellName);
@@ -68,6 +88,9 @@ namespace SpreadsheetGUI
             return cellValue.ToString();
         }
 
+        /// <summary>
+        /// Returns the cell contents given a spreadsheet.
+        /// </summary>
         public string GetCellContents(Spreadsheet spreadsheet)
         {
             var value = spreadsheet.GetCellContents(CellName);
