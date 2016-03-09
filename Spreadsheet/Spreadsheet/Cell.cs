@@ -62,7 +62,14 @@ namespace SS
             Formula cellContents = (Formula)_cellContents;
             try
             {
-                _value = cellContents.Evaluate(c => (double) cells[c].GetValue(cells));
+                _value = cellContents.Evaluate(c =>
+                {
+                    if (!cells.ContainsKey(c)) throw new UndefinedVariableException($"The value of cell {c} is not set.");
+                    var value = cells[c].GetValue(cells);
+                    if (value is FormulaError) throw new UndefinedVariableException($"The value of cell {c} is not set.");
+                    if (value is string) throw new FormulaEvaluationException($"The value of cell {c} does not contain a number or formula.");
+                    return (double) value;
+                });
             }
             catch (Exception e)
             {

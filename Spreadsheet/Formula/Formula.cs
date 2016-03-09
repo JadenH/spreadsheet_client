@@ -266,9 +266,9 @@ namespace Formulas
             {
                 value = lookup(token);
             }
-            catch (UndefinedVariableException)
+            catch (UndefinedVariableException e)
             {
-                throw new FormulaEvaluationException("No variables have values.");
+                throw new FormulaEvaluationException(e.Message);
             }
 
             if (double.IsNaN(value))

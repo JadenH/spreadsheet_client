@@ -55,9 +55,9 @@ namespace SS
             {
                 document.Load(source);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new IOException("Error reading spreadsheet document");
+                throw new IOException(e.Message);
             }
 
             //Add the schema to the document.
