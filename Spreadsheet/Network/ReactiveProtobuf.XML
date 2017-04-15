@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ReactiveProtobuf</name>
+    </assembly>
+    <members>
+        <member name="T:ReactiveProtobuf.Protocol.IChannel`1">
+            <summary>
+            Interface for a bidirectional communication channel
+            that exchanges messages of a given type.
+            </summary>
+        </member>
+        <member name="M:ReactiveProtobuf.Protocol.IChannel`1.SendAsync(`0)">
+            <summary>
+            Sends asynchronously the given message through the channel.
+            </summary>
+        </member>
+        <member name="P:ReactiveProtobuf.Protocol.IChannel`1.Receiver">
+            <summary>
+            Observable receiver for incoming messages.
+            </summary>
+        </member>
+        <member name="T:ReactiveProtobuf.Protocol.ProtobufChannel`1">
+            <summary>
+                Implements the <see cref="T:ReactiveProtobuf.Protocol.IChannel`1"/> over ReactiveSockets.
+            </summary>
+            <typeparam name="T">The type to get (de-)serialized.</typeparam>
+        </member>
+        <member name="M:ReactiveProtobuf.Protocol.ProtobufChannel`1.#ctor(ReactiveSockets.IReactiveSocket,System.Boolean)">
+            <summary>
+                Initializes a new protocol channel.
+            </summary>
+            <param name="socket">The <see cref="T:ReactiveSockets.IReactiveSocket"/> to subscribe to.</param>
+            <param name="isCompressed">
+                True to compress the serialized data, false otherwise.
+                The default value is false.
+            </param>
+        </member>
+        <member name="M:ReactiveProtobuf.Protocol.ProtobufChannel`1.#ctor(ReactiveSockets.IReactiveSocket,System.Boolean,System.Boolean,System.String)">
+            <summary>
+                Initializes a new protocol channel.
+            </summary>
+            <param name="socket">The <see cref="T:ReactiveSockets.IReactiveSocket"/> to subscribe to.</param>
+            <param name="isCompressed">
+                True to compress the serialized data, false otherwise.
+                The default value is false.
+            </param>
+            <param name="isEncrypted">
+                True to encrypt the serialized data with a static key.
+                The default value is false.
+            </param>
+            <param name="encKey">The static key being used to encrypt/decrypt.</param>
+        </member>
+        <member name="M:ReactiveProtobuf.Protocol.ProtobufChannel`1.SendAsync(`0)">
+            <summary>
+                Sends the provided message to all subscribed channels.
+            </summary>
+            <param name="message">The message to send.</param>
+            <returns>The async task.</returns>
+        </member>
+        <member name="P:ReactiveProtobuf.Protocol.ProtobufChannel`1.Receiver">
+            <summary>
+                The receiving channel to subscribe to.
+            </summary>
+            <example>
+                protocol.Receiver.Subscribe(person =>
+                {
+                if (person != null)
+                {
+                Console.WriteLine("Person {0} {1} connected", person.FirstName, person.LastName);
+                }
+                });
+            </example>
+        </member>
+    </members>
+</doc>

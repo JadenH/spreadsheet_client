@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows.Forms;
+using Network;
 using SS;
 
 namespace SpreadsheetGUI
@@ -56,6 +57,9 @@ namespace SpreadsheetGUI
                 // Run the form
                 spreadsheetWindow.Show();
             }
+
+            var server = new ServerConnection();
+            server.Connect();
         }
 
         /// <summary>

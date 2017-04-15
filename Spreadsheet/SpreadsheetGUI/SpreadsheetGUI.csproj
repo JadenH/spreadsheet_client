@@ -49,6 +49,12 @@
     <Compile Include="Controller.cs" />
     <Compile Include="SpreadsheetApplicationContext.cs" />
     <Compile Include="GuiCell.cs" />
+    <Compile Include="SpreadsheetPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SpreadsheetPanel.Designer.cs">
+      <DependentUpon>SpreadsheetPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="SpreadsheetWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -88,6 +94,10 @@
     <ProjectReference Include="..\Formula\Formula.csproj">
       <Project>{D43D998C-9797-4CF4-9BB0-6DE22753849A}</Project>
       <Name>Formula</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Network\Network.csproj">
+      <Project>{2E845D27-4771-43BD-A45E-BAB3244C42B3}</Project>
+      <Name>Network</Name>
     </ProjectReference>
     <ProjectReference Include="..\SpreadsheetPanel\SpreadsheetPanel.csproj">
       <Project>{f31299dc-288f-4e46-a3af-6bf461b21c79}</Project>
