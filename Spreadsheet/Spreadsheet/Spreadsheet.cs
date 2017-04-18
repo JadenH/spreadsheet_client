@@ -403,17 +403,15 @@ namespace SS
                 _dependencyGraph.AddDependency(token.ToUpper(), name);
             }
 
+            bool isCycle = false;
+
             try
             {
                 GetCellsToRecalculate(name);
             }
             catch (CircularException)
             {
-                foreach (var token in formula.GetVariables())
-                {
-                    _dependencyGraph.RemoveDependency(name, token.ToUpper());
-                }
-                throw new CircularException();
+                isCycle = true;
             }
 
             if (_cells.ContainsKey(name)) _cells.Remove(name);
@@ -421,8 +419,32 @@ namespace SS
             Cell cell = new Cell(formula);
             _cells.Add(name, cell);
 
+            if(isCycle)
+                MarkCycle(name);
+
             RecalculateCells(name);
             return new HashSet<string>(GetCellsToRecalculate(name)) { name };
+        }
+
+        private void MarkCycle(string cell)
+        {
+            Console.WriteLine("Marking " + cell);
+            if (!_cells.ContainsKey(cell))
+            {
+                Console.WriteLine("okay so this does happen!");
+            }
+
+            if (_cells[cell].IsCircular == true)
+                return;
+
+            Console.WriteLine("Setting circular");
+            _cells[cell].IsCircular = true;
+            _cells[cell].Recalculate(_cells);
+
+            foreach (string s in _dependencyGraph.GetDependents(cell))
+            {
+                MarkCycle(s);
+            }
         }
 
         /// <summary>

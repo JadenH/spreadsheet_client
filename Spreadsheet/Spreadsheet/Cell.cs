@@ -13,11 +13,17 @@ namespace SS
         private double? _value;
 
         /// <summary>
+        /// Is this cell involved in a circular dependency
+        /// </summary>
+        public bool IsCircular;
+
+        /// <summary>
         /// Cell constructor for a formula.
         /// </summary>
         public Cell(Formula cellContents)
         {
             _cellContents = cellContents;
+            IsCircular = false;
         }
 
         /// <summary>
@@ -26,6 +32,7 @@ namespace SS
         public Cell(double cellContents)
         {
             _cellContents = cellContents;
+            IsCircular = false;
         }
 
         /// <summary>
@@ -34,6 +41,7 @@ namespace SS
         public Cell(string cellContents)
         {
             _cellContents = cellContents;
+            IsCircular = false;
         }
 
         /// <summary>
@@ -57,11 +65,18 @@ namespace SS
         /// </summary>
         public object GetValue(Dictionary<string, Cell> cells)
         {
+            if (IsCircular)
+            {
+                Console.WriteLine("Returning the error boss");
+                return new FormulaError("Circular Dependency");
+            }
+
             if (!(_cellContents is Formula)) return _cellContents;
             if (_value != null) return _value;
             Formula cellContents = (Formula)_cellContents;
             try
             {
+
                 _value = cellContents.Evaluate(c =>
                 {
                     if (!cells.ContainsKey(c)) throw new UndefinedVariableException($"The value of cell {c} is not set.");
