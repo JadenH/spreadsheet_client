@@ -65,14 +65,15 @@ namespace SS
         /// </summary>
         public object GetValue(Dictionary<string, Cell> cells)
         {
+            if (!(_cellContents is Formula)) return _cellContents;
+            if (_value != null) return _value;
+
             if (IsCircular)
             {
                 Console.WriteLine("Returning the error boss");
                 return new FormulaError("Circular Dependency");
             }
 
-            if (!(_cellContents is Formula)) return _cellContents;
-            if (_value != null) return _value;
             Formula cellContents = (Formula)_cellContents;
             try
             {

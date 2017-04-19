@@ -419,14 +419,20 @@ namespace SS
             Cell cell = new Cell(formula);
             _cells.Add(name, cell);
 
-            if(isCycle)
-                MarkCycle(name);
+            HashSet<string> cells = new HashSet<string>();
+
+            if (isCycle)
+            {
+                _dependencyGraph.ReplaceDependents(name,new HashSet<string>());
+                MarkCycle(name, ref cells);
+                return cells;
+            }
 
             RecalculateCells(name);
             return new HashSet<string>(GetCellsToRecalculate(name)) { name };
         }
 
-        private void MarkCycle(string cell)
+        private void MarkCycle(string cell, ref HashSet<string> cells)
         {
             Console.WriteLine("Marking " + cell);
             if (!_cells.ContainsKey(cell))
@@ -439,11 +445,11 @@ namespace SS
 
             Console.WriteLine("Setting circular");
             _cells[cell].IsCircular = true;
-            _cells[cell].Recalculate(_cells);
+            cells.Add(cell);
 
             foreach (string s in _dependencyGraph.GetDependents(cell))
             {
-                MarkCycle(s);
+                MarkCycle(s, ref cells);
             }
         }
 
