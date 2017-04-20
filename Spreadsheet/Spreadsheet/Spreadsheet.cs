@@ -9,7 +9,7 @@ using System.Xml.Schema;
 using Dependencies;
 using Formulas;
 
-namespace SS 
+namespace SS
 {
     /// <summary>
     /// Inherits from Abstract Spreadsheet. Contains cells and dependencies of cells.
@@ -93,10 +93,6 @@ namespace SS
                 try
                 {
                     SetContentsOfCell(cellName, cell.GetAttribute("contents"));
-                }
-                catch (CircularException e)
-                {
-                    throw new SpreadsheetReadException("Error in spreadsheet: " + e.Message);
                 }
                 catch (FormulaFormatException e)
                 {
@@ -196,7 +192,7 @@ namespace SS
             name = name.ToUpper();
             ValidateCellName(name);
 
-            return _cells.ContainsKey(name) ? _cells[name].GetValue(_cells) : string.Empty;
+            return _cells.ContainsKey(name) ? _cells[name].GetValue(_cells, new HashSet<string>()) : string.Empty;
         }
 
         /// <summary>
@@ -366,7 +362,7 @@ namespace SS
                 _cells.Add(name, cell);
                 RecalculateCells(name);
             }
-            
+
 
             return new HashSet<string>(GetCellsToRecalculate(name)) { name };
         }
@@ -403,54 +399,13 @@ namespace SS
                 _dependencyGraph.AddDependency(token.ToUpper(), name);
             }
 
-            bool isCycle = false;
-
-            try
-            {
-                GetCellsToRecalculate(name);
-            }
-            catch (CircularException)
-            {
-                isCycle = true;
-            }
-
             if (_cells.ContainsKey(name)) _cells.Remove(name);
 
             Cell cell = new Cell(formula);
             _cells.Add(name, cell);
 
-            HashSet<string> cells = new HashSet<string>();
-
-            if (isCycle)
-            {
-                _dependencyGraph.ReplaceDependents(name,new HashSet<string>());
-                MarkCycle(name, ref cells);
-                return cells;
-            }
-
             RecalculateCells(name);
             return new HashSet<string>(GetCellsToRecalculate(name)) { name };
-        }
-
-        private void MarkCycle(string cell, ref HashSet<string> cells)
-        {
-            Console.WriteLine("Marking " + cell);
-            if (!_cells.ContainsKey(cell))
-            {
-                Console.WriteLine("okay so this does happen!");
-            }
-
-            if (_cells[cell].IsCircular == true)
-                return;
-
-            Console.WriteLine("Setting circular");
-            _cells[cell].IsCircular = true;
-            cells.Add(cell);
-
-            foreach (string s in _dependencyGraph.GetDependents(cell))
-            {
-                MarkCycle(s, ref cells);
-            }
         }
 
         /// <summary>

@@ -59,7 +59,7 @@ namespace SpreadsheetGUI
             }
 
             var server = new ServerConnection();
-            server.Connect();
+//            server.Connect();
         }
 
         /// <summary>

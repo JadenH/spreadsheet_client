@@ -266,6 +266,10 @@ namespace Formulas
             {
                 value = lookup(token);
             }
+            catch (CircularException e)
+            {
+                throw new FormulaEvaluationException(e.Message);
+            }
             catch (UndefinedVariableException e)
             {
                 throw new FormulaEvaluationException(e.Message);
@@ -391,6 +395,20 @@ namespace Formulas
         /// <param name="variable"></param>
         public UndefinedVariableException(String variable)
             : base(variable)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Thrown to indicate that a change to a cell will cause a circular dependency.
+    /// </summary>
+    public class CircularException : Exception
+    {
+        /// <summary>
+        /// Creates the exception with a message
+        /// </summary>
+        public CircularException(string msg)
+            : base(msg)
         {
         }
     }

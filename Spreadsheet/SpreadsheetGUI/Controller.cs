@@ -209,6 +209,7 @@ namespace SpreadsheetGUI
                 UpdateCells(Spreadsheet.SetContentsOfCell(SelectedCell.CellName, value));
                 UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
                 _window.SetTitle(_spreadsheetName + "*");
+
             }
             catch (Exception e)
             {
