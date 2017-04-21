@@ -20,6 +20,14 @@ namespace SpreadsheetGUI
         private string _spreadsheetName = "New Spreadsheet";
         private string _savePath;
 
+        //Pallete of colors to highlight cells with for given users
+        protected Color[] ClientPallete = new Color[] {
+            Color.FromArgb(71,144,193),
+            Color.FromArgb(249, 197, 107),
+            Color.FromArgb(181,209,125),
+            Color.FromArgb(140,122,163)
+        };
+
         protected Dictionary<string, Client> Clients { get; set; }
         protected string MyClientId { get; private set; }
 
@@ -203,11 +211,17 @@ namespace SpreadsheetGUI
         private void SetCellTyping(string clientId, string cellName)
         {
             var cell = new GuiCell(cellName);
+
+            int id;
+
+            if (!int.TryParse(clientId, out id))
+                id = _random.Next();
+
             if (!Clients.ContainsKey(clientId))
             {
                 Clients.Add(clientId, new Client
                 {
-                    Color = Color.FromArgb(_random.Next(256), _random.Next(256), _random.Next(256)),
+                    Color = ClientPallete[id % ClientPallete.Length],
                     SelectedCell = cell.CellName
                 });
             }
@@ -221,13 +235,18 @@ namespace SpreadsheetGUI
 
         private void DoneTyping(string clientId, string cellName)
         {
+            Console.WriteLine("Done typing");
             var cell = new GuiCell(cellName);
+            int id;
+
+            if (!int.TryParse(clientId, out id))
+                id = _random.Next();
 
             if (!Clients.ContainsKey(clientId))
             {
                 Clients.Add(clientId, new Client
                 {
-                    Color = Color.FromArgb(_random.Next(150, 256), _random.Next(150, 256), _random.Next(150, 256)),
+                    Color = ClientPallete[id % ClientPallete.Length],
                     SelectedCell = null
                 });
             }
