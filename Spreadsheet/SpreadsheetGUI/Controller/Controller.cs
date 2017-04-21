@@ -8,12 +8,14 @@ using SS;
 
 namespace SpreadsheetGUI
 {
-    public class Controller
+    public partial class Controller
     {
         protected ISpreadsheetView _window;
+        protected ISpreadsheetServer _server;
 
         public Spreadsheet Spreadsheet;
         public GuiCell SelectedCell;
+
         private string _spreadsheetName = "New Spreadsheet";
         private string _savePath;
 
@@ -22,14 +24,15 @@ namespace SpreadsheetGUI
         /// This is the controlling component in the MVC framework.
         /// </summary>
         /// <param name="window"></param>
-        public Controller(ISpreadsheetView window)
+        public Controller(ISpreadsheetView window, ISpreadsheetServer server)
         {
             _window = window;
+            _server = server;
             SelectedCell = new GuiCell(0, 0);
             Spreadsheet = new Spreadsheet();
 
-            //Event Subscriptions
-            _window.CellValueBoxTextChange += CellValueBarChanged;
+            // Event Subscriptions
+            _window.CellValueBoxTextComplete += CellValueBarChanged;
             _window.CellSelectionChange += SpreadsheetSelectionChanged;
             _window.CreateNew += CreateNew;
             _window.HandleOpen += () => HandleOpen(null);
@@ -37,6 +40,9 @@ namespace SpreadsheetGUI
             _window.HandleSaveAs += () => HandleSave(null);
             _window.HandleClose += HandleClose;
             _window.HandleHelp += WindowOnHandleHelp;
+
+            // Server Subscriptions
+            _server.MessageReceived += MessageReceived;
 
             //Setup defaults
             _window.SetSelection(SelectedCell.CellColumn, SelectedCell.CellRow);
@@ -161,18 +167,7 @@ namespace SpreadsheetGUI
         /// </summary>
         public void HandleOpen(string path)
         {
-            if (path == null) path = OpenFileDialog();
-            if (path != null)
-            {
-                try
-                {
-                    SpreadsheetApplicationContext.GetContext().RunNew(path);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show($"An error occured opening the file.\n{e.Message}", @"Error Opening File");
-                }
-            }
+            SpreadsheetApplicationContext.GetContext().RunLauncher();
         }
 
         /// <summary>
@@ -180,7 +175,7 @@ namespace SpreadsheetGUI
         /// </summary>
         public void CreateNew()
         {
-            SpreadsheetApplicationContext.GetContext().RunNew();
+            SpreadsheetApplicationContext.GetContext().RunLauncher();
         }
 
 
@@ -206,17 +201,14 @@ namespace SpreadsheetGUI
             _window.InfoBarText = string.Empty;
             try
             {
-                UpdateCells(Spreadsheet.SetContentsOfCell(SelectedCell.CellName, value));
+                SendCell(SelectedCell.CellName, value);
                 UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
                 _window.SetTitle(_spreadsheetName + "*");
-
             }
             catch (Exception e)
             {
                 UpdateInfoBar(e.Message, Color.Red);
             }
-
-
         }
 
         /// <summary>

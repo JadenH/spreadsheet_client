@@ -7,7 +7,7 @@ namespace SpreadsheetGUI
     public interface ISpreadsheetView
     {
         event Func<bool> HandleClose;
-        event Action<string> CellValueBoxTextChange;
+        event Action<string> CellValueBoxTextComplete;
         event Action<int, int> CellSelectionChange;
         event Action CreateNew;
         event Action HandleOpen;

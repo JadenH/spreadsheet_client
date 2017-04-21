@@ -47,6 +47,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller.cs" />
+    <Compile Include="Controller.Server.cs" />
+    <Compile Include="ILauncherView.cs" />
+    <Compile Include="LauncherWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LauncherWindow.Designer.cs">
+      <DependentUpon>LauncherWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="SpreadsheetApplicationContext.cs" />
     <Compile Include="GuiCell.cs" />
     <Compile Include="SpreadsheetPanel.cs">
@@ -64,6 +72,9 @@
     <Compile Include="ISpreadsheetView.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="LauncherWindow.resx">
+      <DependentUpon>LauncherWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

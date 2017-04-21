@@ -8,9 +8,9 @@ using SSGui;
 namespace SpreadsheetGUI
 {
     public partial class SpreadsheetWindow : Form, ISpreadsheetView
-    { 
+    {
         public event Func<bool> HandleClose;
-        public event Action<string> CellValueBoxTextChange;
+        public event Action<string> CellValueBoxTextComplete;
         public event Action<int, int> CellSelectionChange;
         public event Action CreateNew;
         public event Action HandleOpen;
@@ -21,13 +21,22 @@ namespace SpreadsheetGUI
         public SpreadsheetWindow()
         {
             InitializeComponent();
-            CellValueBox.TextChanged += CellValueBoxOnTextChanged;
             SpreadsheetData.SelectionChanged += SpreadsheetDataOnSelectionChanged;
+            CellValueBox.KeyDown += CellValueBoxOnKeyDown;
+            CellValueBox.Leave += CellValueBoxOnLostFocus;
         }
 
-        protected void CellValueBoxOnTextChanged(dynamic sender, EventArgs eventArgs)
+        private void CellValueBoxOnLostFocus(dynamic sender, EventArgs eventArgs)
         {
-            CellValueBoxTextChange?.Invoke(sender.Text);
+            CellValueBoxTextComplete?.Invoke(sender.Text);
+        }
+
+        private void CellValueBoxOnKeyDown(dynamic sender, KeyEventArgs keyEventArgs)
+        {
+            if (keyEventArgs.KeyCode == Keys.Enter)
+            {
+                CellValueBoxTextComplete?.Invoke(sender.Text);
+            }
         }
 
         public string InfoBarText
@@ -72,6 +81,8 @@ namespace SpreadsheetGUI
 
         private void SpreadsheetDataOnSelectionChanged(SpreadsheetPanel sender)
         {
+            CellValueBoxTextComplete?.Invoke(CellValueBox.Text);
+
             int col, row;
             sender.GetSelection(out col, out row);
             CellSelectionChange?.Invoke(col, row);
