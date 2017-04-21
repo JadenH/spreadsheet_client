@@ -22,6 +22,7 @@ namespace SpreadsheetGUI
                     {
                         UpdateCells(Spreadsheet.SetContentsOfCell(items[i], items[i + 1]));
                     }
+                    IsTyping();
                     break;
                 case "IsTyping":
                     SetCellTyping(items[1], items[2]);
