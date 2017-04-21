@@ -9,6 +9,7 @@ namespace SpreadsheetGUI
     {
         public void MessageReceived(string message)
         {
+
             var items = message.Split('\t');
             switch (items.FirstOrDefault())
             {
@@ -45,12 +46,12 @@ namespace SpreadsheetGUI
 
         public void IsTyping()
         {
-            _server.SendMessage($"IsTyping\t{MyClientId}\t{SelectedCell.CellName}");
+            _server.SendMessage($"IsTyping\t{MyClientId}\t{SelectedCell.CellName}\t");
         }
 
         public void DoneTyping()
         {
-            _server.SendMessage($"DoneTyping\t{MyClientId}\t{SelectedCell.CellName}");
+            _server.SendMessage($"DoneTyping\t{MyClientId}\t{SelectedCell.CellName}\t");
         }
     }
 }
