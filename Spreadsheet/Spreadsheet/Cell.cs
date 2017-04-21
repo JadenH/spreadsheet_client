@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Dependencies;
 using Formulas;
 
 namespace SS
@@ -13,17 +14,11 @@ namespace SS
         private double? _value;
 
         /// <summary>
-        /// Is this cell involved in a circular dependency
-        /// </summary>
-        public bool IsCircular;
-
-        /// <summary>
         /// Cell constructor for a formula.
         /// </summary>
         public Cell(Formula cellContents)
         {
             _cellContents = cellContents;
-            IsCircular = false;
         }
 
         /// <summary>
@@ -32,7 +27,6 @@ namespace SS
         public Cell(double cellContents)
         {
             _cellContents = cellContents;
-            IsCircular = false;
         }
 
         /// <summary>
@@ -41,7 +35,6 @@ namespace SS
         public Cell(string cellContents)
         {
             _cellContents = cellContents;
-            IsCircular = false;
         }
 
         /// <summary>
@@ -63,28 +56,23 @@ namespace SS
         /// <summary>
         /// Returns the cell value.
         /// </summary>
-        public object GetValue(Dictionary<string, Cell> cells)
+        public object GetValue(Dictionary<string, Cell> cells, ISet<string> visited)
         {
             if (!(_cellContents is Formula)) return _cellContents;
             if (_value != null) return _value;
 
-            if (IsCircular)
-            {
-                Console.WriteLine("Returning the error boss");
-                return new FormulaError("Circular Dependency");
-            }
-
             Formula cellContents = (Formula)_cellContents;
             try
             {
-
                 _value = cellContents.Evaluate(c =>
                 {
+                    if (visited.Contains(c)) throw new CircularException($"Circular Dependency");
+                    visited.Add(c);
                     if (!cells.ContainsKey(c)) throw new UndefinedVariableException($"The value of cell {c} is not set.");
-                    var value = cells[c].GetValue(cells);
-                    if (value is FormulaError) throw new UndefinedVariableException($"The value of cell {c} is not set.");
+                    var value = cells[c].GetValue(cells, visited);
+                    if (value is FormulaError) throw new UndefinedVariableException(((FormulaError)value).Reason);
                     if (value is string) throw new FormulaEvaluationException($"The value of cell {c} does not contain a number or formula.");
-                    return (double) value;
+                    return (double)value;
                 });
             }
             catch (Exception e)

@@ -2,34 +2,45 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using SpreadsheetGUI.Properties;
 using SS;
 
 namespace SpreadsheetGUI
 {
-    public class Controller
+    public partial class Controller
     {
         protected ISpreadsheetView _window;
+        protected ISpreadsheetServer _server;
 
         public Spreadsheet Spreadsheet;
         public GuiCell SelectedCell;
+
         private string _spreadsheetName = "New Spreadsheet";
         private string _savePath;
+
+        protected Dictionary<string, Client> Clients { get; set; }
+        protected string MyClientId { get; private set; }
+
+        private Random _random;
 
         /// <summary>
         /// Initializes a controller for the given window. 
         /// This is the controlling component in the MVC framework.
         /// </summary>
         /// <param name="window"></param>
-        public Controller(ISpreadsheetView window)
+        public Controller(ISpreadsheetView window, ISpreadsheetServer server)
         {
             _window = window;
+            _server = server;
             SelectedCell = new GuiCell(0, 0);
             Spreadsheet = new Spreadsheet();
+            _random = new Random();
+            Clients = new Dictionary<string, Client>();
 
-            //Event Subscriptions
-            _window.CellValueBoxTextChange += CellValueBarChanged;
+            // Event Subscriptions
+            _window.CellValueBoxTextComplete += CellValueBarChanged;
             _window.CellSelectionChange += SpreadsheetSelectionChanged;
             _window.CreateNew += CreateNew;
             _window.HandleOpen += () => HandleOpen(null);
@@ -37,6 +48,10 @@ namespace SpreadsheetGUI
             _window.HandleSaveAs += () => HandleSave(null);
             _window.HandleClose += HandleClose;
             _window.HandleHelp += WindowOnHandleHelp;
+            _window.HandleUndo += Undo;
+
+            // Server Subscriptions
+            _server.MessageReceived += MessageReceived;
 
             //Setup defaults
             _window.SetSelection(SelectedCell.CellColumn, SelectedCell.CellRow);
@@ -70,46 +85,7 @@ namespace SpreadsheetGUI
         /// </summary>
         private bool HandleClose()
         {
-            if (Spreadsheet.Changed)
-            {
-                var response = MessageBox.Show($"Want to save your changes for {_spreadsheetName} before closing?", @"Spreadsheet",
-                    MessageBoxButtons.YesNoCancel);
-                switch (response)
-                {
-                    case DialogResult.Yes:
-                        HandleSave(_savePath);
-                        break;
-                    case DialogResult.No:
-                        break;
-                    case DialogResult.Cancel:
-                    case DialogResult.Abort:
-                        return true;
-                }
-            }
             return false;
-        }
-
-        /// <summary>
-        /// Creates a save window dialog for the user to select a path in which to save the file to.
-        /// </summary>
-        private string SaveFileDialog()
-        {
-            SaveFileDialog saveFileDialog = new SaveFileDialog
-            {
-                AddExtension = false,
-                CheckPathExists = true,
-                Filter = @"Spreadsheet (*.ss)|*.ss|All files (*.*)|*.*"
-            };
-
-            DialogResult dialogResult = saveFileDialog.ShowDialog();
-            if (dialogResult == DialogResult.OK)
-            {
-                bool extension = saveFileDialog.FilterIndex == 1;
-                string filePath = saveFileDialog.FileName;
-                if (extension && Path.GetExtension(filePath) != ".ss") filePath += ".ss";
-                return filePath;
-            }
-            return null;
         }
 
         /// <summary>
@@ -117,42 +93,6 @@ namespace SpreadsheetGUI
         /// </summary>
         public void HandleSave(string path)
         {
-            //If we don't have a path to save to we should get one from a save dialog.
-            if (path == null) path = SaveFileDialog();
-            if (path != null)
-            {
-                try
-                {
-                    TextWriter textWriter = new StreamWriter(path);
-                    Spreadsheet.Save(textWriter);
-                    textWriter.Close();
-                    SetSavedPath(path);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show($"An error occured saving the file.\n{e.Message}", @"Error Saving File");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a open window dialog for the user to select a file to be opened.
-        /// </summary>
-        /// <returns>The path of the selected file.</returns>
-        private string OpenFileDialog()
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = @"Spreadsheet (.ss)|*.ss|All Files (*.*)|*.*",
-                FilterIndex = 1,
-                Multiselect = false
-            };
-            DialogResult dialogResult = openFileDialog.ShowDialog();
-            if (dialogResult == DialogResult.OK)
-            {
-                return openFileDialog.FileName;
-            }
-            return null;
         }
 
         /// <summary>
@@ -161,18 +101,7 @@ namespace SpreadsheetGUI
         /// </summary>
         public void HandleOpen(string path)
         {
-            if (path == null) path = OpenFileDialog();
-            if (path != null)
-            {
-                try
-                {
-                    SpreadsheetApplicationContext.GetContext().RunNew(path);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show($"An error occured opening the file.\n{e.Message}", @"Error Opening File");
-                }
-            }
+            SpreadsheetApplicationContext.GetContext().RunLauncher();
         }
 
         /// <summary>
@@ -180,9 +109,8 @@ namespace SpreadsheetGUI
         /// </summary>
         public void CreateNew()
         {
-            SpreadsheetApplicationContext.GetContext().RunNew();
+            SpreadsheetApplicationContext.GetContext().RunLauncher();
         }
-
 
         /// <summary>
         /// Every time the selection changes, this method is called with the
@@ -190,10 +118,13 @@ namespace SpreadsheetGUI
         /// </summary>
         private void SpreadsheetSelectionChanged(int col, int row)
         {
+            DoneTyping();
+
             SelectedCell = new GuiCell(col, row);
             _window.CellValueBoxText = SelectedCell.GetCellContents(Spreadsheet);
             UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
             UpdateCellNameText();
+            IsTyping();
         }
 
         /// <summary>
@@ -206,7 +137,7 @@ namespace SpreadsheetGUI
             _window.InfoBarText = string.Empty;
             try
             {
-                UpdateCells(Spreadsheet.SetContentsOfCell(SelectedCell.CellName, value));
+                SendCell(SelectedCell.CellName, value);
                 UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
                 _window.SetTitle(_spreadsheetName + "*");
             }
@@ -214,8 +145,6 @@ namespace SpreadsheetGUI
             {
                 UpdateInfoBar(e.Message, Color.Red);
             }
-
-
         }
 
         /// <summary>
@@ -228,6 +157,10 @@ namespace SpreadsheetGUI
             {
                 GuiCell cell = new GuiCell(cellName);
                 _window.UpdateCell(cell.CellColumn, cell.CellRow, cell.GetCellValue(Spreadsheet));
+                if (SelectedCell.CellName == cell.CellName)
+                {
+                    _window.CellValueBoxText = SelectedCell.GetCellContents(Spreadsheet);
+                }
             }
         }
 
@@ -265,6 +198,48 @@ namespace SpreadsheetGUI
             _spreadsheetName = Path.GetFileNameWithoutExtension(path);
             _savePath = path;
             _window.SetTitle(_spreadsheetName);
+        }
+
+        private void SetCellTyping(string clientId, string cellName)
+        {
+            var cell = new GuiCell(cellName);
+            if (!Clients.ContainsKey(clientId))
+            {
+                Clients.Add(clientId, new Client
+                {
+                    Color = Color.FromArgb(_random.Next(256), _random.Next(256), _random.Next(256)),
+                    SelectedCell = cell.CellName
+                });
+            }
+            else
+            {
+                Clients[clientId].SelectedCell = cellName;
+            }
+
+            _window.CellBackgroundColor(cell.CellColumn, cell.CellRow, Clients[clientId].Color);
+        }
+
+        private void DoneTyping(string clientId, string cellName)
+        {
+            var cell = new GuiCell(cellName);
+
+            if (!Clients.ContainsKey(clientId))
+            {
+                Clients.Add(clientId, new Client
+                {
+                    Color = Color.FromArgb(_random.Next(150, 256), _random.Next(150, 256), _random.Next(150, 256)),
+                    SelectedCell = null
+                });
+            }
+            else
+            {
+                Clients[clientId].SelectedCell = null;
+            }
+
+            Clients[clientId].SelectedCell = null;
+
+            var client = Clients.Values.FirstOrDefault(c => c.SelectedCell == cell.CellName);
+            _window.CellBackgroundColor(cell.CellColumn, cell.CellRow, client?.Color ?? Color.White);
         }
     }
 }

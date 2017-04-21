@@ -7,13 +7,14 @@ namespace SpreadsheetGUI
     public interface ISpreadsheetView
     {
         event Func<bool> HandleClose;
-        event Action<string> CellValueBoxTextChange;
+        event Action<string> CellValueBoxTextComplete;
         event Action<int, int> CellSelectionChange;
         event Action CreateNew;
         event Action HandleOpen;
         event Action HandleSave;
         event Action HandleSaveAs;
         event Action HandleHelp;
+        event Action HandleUndo;
 
         string InfoBarText { set; }
         Color InfoBarColor { set; }
@@ -24,5 +25,6 @@ namespace SpreadsheetGUI
         void UpdateCell(int col, int row, string value);
         void DoClose();
         void SetTitle(string spreadsheetName);
+        void CellBackgroundColor(int col, int row, Color color);
     }
 }

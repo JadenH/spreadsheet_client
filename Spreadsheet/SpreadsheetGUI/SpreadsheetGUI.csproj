@@ -46,24 +46,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controller.cs" />
-    <Compile Include="SpreadsheetApplicationContext.cs" />
-    <Compile Include="GuiCell.cs" />
-    <Compile Include="SpreadsheetPanel.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="SpreadsheetPanel.Designer.cs">
-      <DependentUpon>SpreadsheetPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SpreadsheetWindow.cs">
+    <Compile Include="Controller\Client.cs" />
+    <Compile Include="Controller\Controller.cs" />
+    <Compile Include="Controller\Controller.Server.cs" />
+    <Compile Include="Launcher\ILauncherView.cs" />
+    <Compile Include="Launcher\LauncherWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SpreadsheetWindow.Designer.cs">
+    <Compile Include="Launcher\LauncherWindow.Designer.cs">
+      <DependentUpon>LauncherWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SpreadsheetApplicationContext.cs" />
+    <Compile Include="Controller\GuiCell.cs" />
+    <Compile Include="Spreadsheet\SpreadsheetPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Spreadsheet\SpreadsheetPanel.Designer.cs">
+      <DependentUpon>SpreadsheetPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Spreadsheet\SpreadsheetWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Spreadsheet\SpreadsheetWindow.Designer.cs">
       <DependentUpon>SpreadsheetWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="ISpreadsheetView.cs" />
+    <Compile Include="Spreadsheet\ISpreadsheetView.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Launcher\LauncherWindow.resx">
+      <DependentUpon>LauncherWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -74,7 +86,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="SpreadsheetWindow.resx">
+    <EmbeddedResource Include="Spreadsheet\SpreadsheetWindow.resx">
       <DependentUpon>SpreadsheetWindow.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">

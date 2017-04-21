@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ReactiveSockets;
 
@@ -36,9 +37,8 @@ namespace Network
             this.socket = socket;
             this.encoding = encoding;
 
-            Receiver = from header in socket.Receiver.Buffer(sizeof(int))
-                       let length = BitConverter.ToInt32(header.ToArray(), 0)
-                       let body = socket.Receiver.Take(length)
+            Receiver = from data in socket.Receiver
+                       let body = socket.Receiver.TakeWhile(b => b != (byte)'\n')
                        select Encoding.UTF8.GetString(body.ToEnumerable().ToArray());
         }
 
@@ -51,11 +51,7 @@ namespace Network
 
         internal byte[] Convert(string message)
         {
-            var body = encoding.GetBytes(message);
-            var header = BitConverter.GetBytes(body.Length);
-            var payload = header.Concat(body).ToArray();
-
-            return payload;
+            return encoding.GetBytes(message);
         }
     }
 }

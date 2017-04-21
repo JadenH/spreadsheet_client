@@ -37,45 +37,36 @@ namespace SpreadsheetGUI
             return context;
         }
 
-        /// <summary>
-        /// Runs a form in this application context
-        /// </summary>
-        /// <param name="textReader"></param>
-        public void RunNew()
+        public void RunLauncher()
         {
             // Create the window and the controller
-            SpreadsheetWindow spreadsheetWindow = new SpreadsheetWindow();
-            new Controller(spreadsheetWindow);
+            LauncherWindow launcherWindow = new LauncherWindow();
 
             // One more form is running
             windowCount++;
 
             // When this form closes, we want to find out
-            spreadsheetWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+            launcherWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
             if (!IsUnitTest)
             {
                 // Run the form
-                spreadsheetWindow.Show();
+                launcherWindow.Show();
             }
 
+            launcherWindow.OpenSpreadsheet += RunNew;
+        }
+
+        /// <summary>
+        /// Runs a form in this application context
+        /// </summary>
+        /// <param name="textReader"></param>
+        public void RunNew(string ipaddress, string spreadsheetName)
+        {
             var server = new ServerConnection();
-            server.Connect();
-        }
 
-        /// <summary>
-        /// Runs a form in this application context
-        /// </summary>
-        /// <param name="textReader"></param>
-        public void RunNew(string filePath)
-        {
             // Create the window and the controller
             SpreadsheetWindow spreadsheetWindow = new SpreadsheetWindow();
-            Controller spreadsheetController = new Controller(spreadsheetWindow);
-            TextReader textReader = new StreamReader(filePath);
-            spreadsheetController.ChangeSpreadsheet(new Spreadsheet(textReader));
-            spreadsheetController.SetSavedPath(filePath);
-            textReader.Close();
-
+            new Controller(spreadsheetWindow, server);
 
             // One more form is running
             windowCount++;
@@ -87,6 +78,9 @@ namespace SpreadsheetGUI
                 // Run the form
                 spreadsheetWindow.Show();
             }
+
+            server.Connect(ipaddress, spreadsheetName);
         }
+
     }
 }

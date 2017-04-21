@@ -8,26 +8,42 @@ using SSGui;
 namespace SpreadsheetGUI
 {
     public partial class SpreadsheetWindow : Form, ISpreadsheetView
-    { 
+    {
         public event Func<bool> HandleClose;
-        public event Action<string> CellValueBoxTextChange;
+        public event Action<string> CellValueBoxTextComplete;
         public event Action<int, int> CellSelectionChange;
         public event Action CreateNew;
         public event Action HandleOpen;
         public event Action HandleSave;
         public event Action HandleSaveAs;
         public event Action HandleHelp;
+        public event Action HandleUndo;
 
         public SpreadsheetWindow()
         {
             InitializeComponent();
-            CellValueBox.TextChanged += CellValueBoxOnTextChanged;
             SpreadsheetData.SelectionChanged += SpreadsheetDataOnSelectionChanged;
+            CellValueBox.KeyDown += CellValueBoxOnKeyDown;
+            CellValueBox.Leave += CellValueBoxOnLostFocus;
+            undoToolStripMenuItem.Click += DoUndo;
         }
 
-        protected void CellValueBoxOnTextChanged(dynamic sender, EventArgs eventArgs)
+        private void DoUndo(object sender, EventArgs eventArgs)
         {
-            CellValueBoxTextChange?.Invoke(sender.Text);
+            HandleUndo?.Invoke();
+        }
+
+        private void CellValueBoxOnLostFocus(dynamic sender, EventArgs eventArgs)
+        {
+            CellValueBoxTextComplete?.Invoke(sender.Text);
+        }
+
+        private void CellValueBoxOnKeyDown(dynamic sender, KeyEventArgs keyEventArgs)
+        {
+            if (keyEventArgs.KeyCode == Keys.Enter)
+            {
+                CellValueBoxTextComplete?.Invoke(sender.Text);
+            }
         }
 
         public string InfoBarText
@@ -47,7 +63,23 @@ namespace SpreadsheetGUI
 
         public string CellValueBoxText
         {
-            set { CellValueBox.Text = value; }
+            set
+            {
+                // InvokeRequired required compares the thread ID of the
+                // calling thread to the thread ID of the creating thread.
+                // If these threads are different, it returns true.
+                if (CellValueBox.InvokeRequired)
+                {
+                    Invoke(new Action<string>(s =>
+                    {
+                        CellValueBoxText = s;
+                    }), value);
+                }
+                else
+                {
+                    CellValueBox.Text = value;
+                }
+            }
         }
 
         public void SetSelection(int col, int row)
@@ -68,6 +100,11 @@ namespace SpreadsheetGUI
         public void SetTitle(string spreadsheetName)
         {
             Text = spreadsheetName;
+        }
+
+        public void CellBackgroundColor(int col, int row, Color color)
+        {
+            SpreadsheetData.SetCellBackground(col, row, color);
         }
 
         private void SpreadsheetDataOnSelectionChanged(SpreadsheetPanel sender)

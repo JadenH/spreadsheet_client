@@ -20,12 +20,6 @@ using System.IO;
 
 namespace SS
 {
-    /// <summary>
-    /// Thrown to indicate that a change to a cell will cause a circular dependency.
-    /// </summary>
-    public class CircularException : Exception
-    {
-    }
 
     /// <summary>
     /// Thrown to indicate that a name parameter was either null or invalid.
@@ -319,7 +313,7 @@ namespace SS
         /// </summary>
         protected IEnumerable<String> GetCellsToRecalculate(String name)
         {
-            return GetCellsToRecalculate(new HashSet<String>() { name });
+            return GetCellsToRecalculate(new HashSet<String> { name });
         }
 
         /// <summary>
@@ -330,11 +324,7 @@ namespace SS
             visited.Add(name);
             foreach (String n in GetDirectDependents(name))
             {
-                if (n.Equals(start))
-                {
-                    throw new CircularException();
-                }
-                else if (!visited.Contains(n))
+                if (!visited.Contains(n))
                 {
                     Visit(start, n, visited, changed);
                 }
