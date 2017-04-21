@@ -75,7 +75,7 @@ namespace Formulas
             ValidateParentheses(_tokens);
             ValidateOrderOfOperations(_tokens);
         }
-
+         
         /// <summary>
         /// Tests the order of operations in a list of tokens from a formula.
         /// </summary>
