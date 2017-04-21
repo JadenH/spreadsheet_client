@@ -21,11 +21,12 @@ namespace Formulas
         private const string lpPattern = @"\(";
         private const string rpPattern = @"\)";
         private const string opPattern = @"^[\+\-*/]$";
-        private const string varPattern = @"[a-zA-Z][0-9a-zA-Z]*";
+        private const string varPattern = @"[a-zA-Z][0-9]+";
         private const string doublePattern = @"(?: \d+\.\d* | \d*\.\d+ | \d+ ) (?: e[\+-]?\d+)?";
         private const string spacePattern = @"\s+";
 
-        private IEnumerable<string> _tokens;
+        private List<string> _tokens;
+        private Validator _validator;
 
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
@@ -50,11 +51,8 @@ namespace Formulas
         public Formula(string formula)
         {
             List<string> tokens = GetTokens(formula).ToList();
-            if (tokens.Count <= 0) throw new FormulaFormatException("Formula must contain at least one token.");
-            ValidateTokens(tokens);
-            ValidateParentheses(tokens);
-            ValidateOrderOfOperations(tokens);
             _tokens = tokens;
+            _validator = null;
         }
 
         /// <summary>
@@ -66,12 +64,18 @@ namespace Formulas
         public Formula(string formula, Normalizer normalizer, Validator validator) : this()
         {
             List<string> tokens = GetTokens(formula, normalizer).ToList();
-            if (tokens.Count <= 0) throw new FormulaFormatException("Formula must contain at least one token.");
-            ValidateTokens(tokens, validator);
-            ValidateParentheses(tokens);
-            ValidateOrderOfOperations(tokens);
+            _validator = validator;
             _tokens = tokens;
         }
+
+        public void ValidateFormula()
+        {
+            if (_tokens.Count <= 0) throw new FormulaFormatException("Formula must contain at least one token.");
+            ValidateTokens(_tokens, _validator);
+            ValidateParentheses(_tokens);
+            ValidateOrderOfOperations(_tokens);
+        }
+
         /// <summary>
         /// Tests the order of operations in a list of tokens from a formula.
         /// </summary>
@@ -82,30 +86,41 @@ namespace Formulas
             if (!Regex.IsMatch(tokens[0], $"({doublePattern}) | ({varPattern}) | ({lpPattern})",
                 RegexOptions.IgnorePatternWhitespace))
             {
-                throw new FormulaFormatException("The first token of a formula must be a number, a variable, or an opening parenthesis.");
+                throw new FormulaFormatException(
+                    "The first token of a formula must be a number, a variable, or an opening parenthesis.");
             }
             //The last token of a formula must be a number, a variable, or a closing parenthesis.
-            if (!Regex.IsMatch(tokens.Last(), $"({doublePattern}) | ({varPattern}) | ({rpPattern})", RegexOptions.IgnorePatternWhitespace))
+            if (
+                !Regex.IsMatch(tokens.Last(), $"({doublePattern}) | ({varPattern}) | ({rpPattern})",
+                    RegexOptions.IgnorePatternWhitespace))
             {
-                throw new FormulaFormatException("The last token of a formula must be a number, a variable, or a closing parenthesis.");
+                throw new FormulaFormatException(
+                    "The last token of a formula must be a number, a variable, or a closing parenthesis.");
             }
-            for (int i = 0; i < tokens.Count-1; i++)
+            for (int i = 0; i < tokens.Count - 1; i++)
             {
                 // Any token that immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.
-                if (Regex.IsMatch(tokens[i], $"({doublePattern}) | ({varPattern}) | ({rpPattern})", RegexOptions.IgnorePatternWhitespace))
+                if (Regex.IsMatch(tokens[i], $"({doublePattern}) | ({varPattern}) | ({rpPattern})",
+                    RegexOptions.IgnorePatternWhitespace))
                 {
-                    if (!Regex.IsMatch(tokens[i + 1], $"({opPattern}) | ({rpPattern})", RegexOptions.IgnorePatternWhitespace))
+                    if (
+                        !Regex.IsMatch(tokens[i + 1], $"({opPattern}) | ({rpPattern})",
+                            RegexOptions.IgnorePatternWhitespace))
                     {
-                        throw new FormulaFormatException("Any token that immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.");
+                        throw new FormulaFormatException(
+                            "Any token that immediately follows a number, a variable, or a closing parenthesis must be either an operator or a closing parenthesis.");
                     }
                 }
 
                 // Any token that immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis.
                 if (Regex.IsMatch(tokens[i], $"({lpPattern}) | ({opPattern})", RegexOptions.IgnorePatternWhitespace))
                 {
-                    if (!Regex.IsMatch(tokens[i + 1], $"({doublePattern}) | ({varPattern}) | ({lpPattern})", RegexOptions.IgnorePatternWhitespace))
+                    if (
+                        !Regex.IsMatch(tokens[i + 1], $"({doublePattern}) | ({varPattern}) | ({lpPattern})",
+                            RegexOptions.IgnorePatternWhitespace))
                     {
-                        throw new FormulaFormatException("Any token that immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis.");
+                        throw new FormulaFormatException(
+                            "Any token that immediately follows an opening parenthesis or an operator must be either a number, a variable, or an opening parenthesis.");
                     }
                 }
             }
@@ -120,7 +135,7 @@ namespace Formulas
             ValidateTokens(tokens);
             foreach (var token in tokens.Where(token => Regex.IsMatch(token, $"^{varPattern}$")))
             {
-                if (!validator.Invoke(token))
+                if (validator != null && !validator.Invoke(token))
                 {
                     throw new FormulaFormatException($"Validator caught an invalid token '{token}'.");
                 }
@@ -177,7 +192,16 @@ namespace Formulas
             Stack<object> operatorStack = new Stack<object>();
             Stack<double> valueStack = new Stack<double>();
 
-            if (_tokens == null) _tokens = new[] {"0"};
+            if (_tokens == null) _tokens = new List<string> {"0"};
+
+            try
+            {
+                ValidateFormula();
+            }
+            catch (Exception e)
+            {
+                throw new FormulaEvaluationException(e.Message);
+            }
 
             foreach (var token in _tokens)
             {
@@ -358,14 +382,14 @@ namespace Formulas
         /// </summary>
         public override string ToString()
         {
-            if (_tokens == null) _tokens = new[] { "0" };
+            if (_tokens == null) _tokens = new List<string> { "0" };
             string result = _tokens.Aggregate("", (current, token) => current + token + " ");
             return result.Trim();
         }
 
         public ISet<string> GetVariables()
         {
-            if (_tokens == null) _tokens = new[] { "0" };
+            if (_tokens == null) _tokens = new List<string>{ "0" };
             return new HashSet<string>(_tokens.Where(token => Regex.IsMatch(token, $"^{varPattern}$")));
         }
     }
