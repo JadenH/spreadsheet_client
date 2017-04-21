@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
@@ -16,16 +17,17 @@ namespace SpreadsheetGUI
                     break;
                 case "Startup":
                 case "tartup":
+                    MyClientId = items[1];
                     for (int i = 2; i + 1 < items.Length; i += 2)
                     {
                         UpdateCells(Spreadsheet.SetContentsOfCell(items[i], items[i + 1]));
                     }
                     break;
                 case "IsTyping":
-
+                    SetCellTyping(items[1], items[2]);
                     break;
                 case "DoneTyping":
-
+                    DoneTyping(items[1], items[2]);
                     break;
             }
         }
@@ -38,6 +40,16 @@ namespace SpreadsheetGUI
         public void Undo()
         {
             _server.SendMessage($"Undo\t");
+        }
+
+        public void IsTyping()
+        {
+            _server.SendMessage($"IsTyping\t{MyClientId}\t{SelectedCell.CellName}");
+        }
+
+        public void DoneTyping()
+        {
+            _server.SendMessage($"DoneTyping\t{MyClientId}\t{SelectedCell.CellName}");
         }
     }
 }

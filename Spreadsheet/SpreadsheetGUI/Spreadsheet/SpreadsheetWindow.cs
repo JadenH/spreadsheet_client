@@ -102,6 +102,11 @@ namespace SpreadsheetGUI
             Text = spreadsheetName;
         }
 
+        public void CellBackgroundColor(int col, int row, Color color)
+        {
+            SpreadsheetData.SetCellBackground(col, row, color);
+        }
+
         private void SpreadsheetDataOnSelectionChanged(SpreadsheetPanel sender)
         {
             int col, row;

@@ -25,5 +25,6 @@ namespace SpreadsheetGUI
         void UpdateCell(int col, int row, string value);
         void DoClose();
         void SetTitle(string spreadsheetName);
+        void CellBackgroundColor(int col, int row, Color color);
     }
 }

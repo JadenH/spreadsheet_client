@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using SpreadsheetGUI.Properties;
 using SS;
@@ -19,6 +20,11 @@ namespace SpreadsheetGUI
         private string _spreadsheetName = "New Spreadsheet";
         private string _savePath;
 
+        protected Dictionary<string, Client> Clients { get; set; }
+        protected string MyClientId { get; private set; }
+
+        private Random _random;
+
         /// <summary>
         /// Initializes a controller for the given window. 
         /// This is the controlling component in the MVC framework.
@@ -30,6 +36,8 @@ namespace SpreadsheetGUI
             _server = server;
             SelectedCell = new GuiCell(0, 0);
             Spreadsheet = new Spreadsheet();
+            _random = new Random();
+            Clients = new Dictionary<string, Client>();
 
             // Event Subscriptions
             _window.CellValueBoxTextComplete += CellValueBarChanged;
@@ -110,10 +118,13 @@ namespace SpreadsheetGUI
         /// </summary>
         private void SpreadsheetSelectionChanged(int col, int row)
         {
+            DoneTyping();
+
             SelectedCell = new GuiCell(col, row);
             _window.CellValueBoxText = SelectedCell.GetCellContents(Spreadsheet);
             UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
             UpdateCellNameText();
+            IsTyping();
         }
 
         /// <summary>
@@ -187,6 +198,48 @@ namespace SpreadsheetGUI
             _spreadsheetName = Path.GetFileNameWithoutExtension(path);
             _savePath = path;
             _window.SetTitle(_spreadsheetName);
+        }
+
+        private void SetCellTyping(string clientId, string cellName)
+        {
+            var cell = new GuiCell(cellName);
+            if (!Clients.ContainsKey(clientId))
+            {
+                Clients.Add(clientId, new Client
+                {
+                    Color = Color.FromArgb(_random.Next(256), _random.Next(256), _random.Next(256)),
+                    SelectedCell = cell.CellName
+                });
+            }
+            else
+            {
+                Clients[clientId].SelectedCell = cellName;
+            }
+
+            _window.CellBackgroundColor(cell.CellColumn, cell.CellRow, Clients[clientId].Color);
+        }
+
+        private void DoneTyping(string clientId, string cellName)
+        {
+            var cell = new GuiCell(cellName);
+
+            if (!Clients.ContainsKey(clientId))
+            {
+                Clients.Add(clientId, new Client
+                {
+                    Color = Color.FromArgb(_random.Next(150, 256), _random.Next(150, 256), _random.Next(150, 256)),
+                    SelectedCell = null
+                });
+            }
+            else
+            {
+                Clients[clientId].SelectedCell = null;
+            }
+
+            Clients[clientId].SelectedCell = null;
+
+            var client = Clients.Values.FirstOrDefault(c => c.SelectedCell == cell.CellName);
+            _window.CellBackgroundColor(cell.CellColumn, cell.CellRow, client?.Color ?? Color.White);
         }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace SSGui
@@ -75,6 +76,11 @@ namespace SSGui
 
         }
 
+        public void SetCellBackground(int col, int row, Color color)
+        {
+            drawingPanel.SetCellBackground(col, row, color);
+        }
+
         /// <summary>
         /// Clears the display.
         /// </summary>       
@@ -138,7 +144,7 @@ namespace SSGui
                 hScroll.LargeChange = (Width - SCROLLBAR_WIDTH) / DATA_COL_WIDTH;
             }
         }
-             
+
         /// <summary>
         /// The event used to send notifications of a selection change
         /// </summary>
@@ -166,7 +172,8 @@ namespace SSGui
 
             public override bool Equals(object obj)
             {
- 	            if ((obj == null) || !(obj is Address)) {
+                if ((obj == null) || !(obj is Address))
+                {
                     return false;
                 }
                 Address a = (Address)obj;
@@ -188,9 +195,11 @@ namespace SSGui
             // Coordinate of cell in upper-left corner of display
             private int _firstColumn = 0;
             private int _firstRow = 0;
-            
+
             // The strings contained by the spreadsheet
-            private Dictionary<Address,String> _values;
+            private Dictionary<Address, String> _values;
+
+            private Dictionary<Address, Color> _backgroundColors;
 
             // The containing panel
             private SpreadsheetPanel _ssp;
@@ -199,6 +208,7 @@ namespace SSGui
             {
                 DoubleBuffered = true;
                 _values = new Dictionary<Address, String>();
+                _backgroundColors = new Dictionary<Address, Color>();
                 _ssp = ss;
             }
 
@@ -334,6 +344,17 @@ namespace SSGui
                 }
 
                 // Highlight the selection, if it is visible
+
+                foreach (var backgroundColor in _backgroundColors.ToList())
+                {
+                    e.Graphics.FillRectangle(
+                        new SolidBrush(backgroundColor.Value),
+                        new Rectangle(LABEL_COL_WIDTH + (backgroundColor.Key.Col - _firstColumn) * DATA_COL_WIDTH + 1,
+                                      LABEL_ROW_HEIGHT + (backgroundColor.Key.Row - _firstRow) * DATA_ROW_HEIGHT + 1,
+                                      DATA_COL_WIDTH - 2,
+                                      DATA_ROW_HEIGHT - 2));
+                }
+
                 if ((_selectedCol - _firstColumn >= 0) && (_selectedRow - _firstRow >= 0))
                 {
                     e.Graphics.DrawRectangle(
@@ -343,7 +364,7 @@ namespace SSGui
                                       DATA_COL_WIDTH - 2,
                                       DATA_ROW_HEIGHT - 2));
                 }
-                
+
                 // Draw the text
                 foreach (KeyValuePair<Address, String> address in _values)
                 {
@@ -356,7 +377,7 @@ namespace SSGui
                     {
                         Region cellClip = new Region(new Rectangle(LABEL_COL_WIDTH + x * DATA_COL_WIDTH + PADDING,
                                                                    LABEL_ROW_HEIGHT + y * DATA_ROW_HEIGHT,
-                                                                   DATA_COL_WIDTH - 2*PADDING,
+                                                                   DATA_COL_WIDTH - 2 * PADDING,
                                                                    DATA_ROW_HEIGHT));
                         cellClip.Intersect(clip);
                         e.Graphics.Clip = cellClip;
@@ -382,8 +403,8 @@ namespace SSGui
                       label,
                       f,
                       new SolidBrush(Color.Black),
-                      LABEL_COL_WIDTH + x*DATA_COL_WIDTH + (DATA_COL_WIDTH - width)/2,
-                      (LABEL_ROW_HEIGHT - height)/2);
+                      LABEL_COL_WIDTH + x * DATA_COL_WIDTH + (DATA_COL_WIDTH - width) / 2,
+                      (LABEL_ROW_HEIGHT - height) / 2);
             }
 
             /// <summary>
@@ -398,8 +419,8 @@ namespace SSGui
                     label,
                     f,
                     new SolidBrush(Color.Black),
-                    LABEL_COL_WIDTH - width- PADDING,
-                    LABEL_ROW_HEIGHT + y * DATA_ROW_HEIGHT + (DATA_ROW_HEIGHT-height)/2);
+                    LABEL_COL_WIDTH - width - PADDING,
+                    LABEL_ROW_HEIGHT + y * DATA_ROW_HEIGHT + (DATA_ROW_HEIGHT - height) / 2);
             }
 
             /// <summary>
@@ -409,8 +430,8 @@ namespace SSGui
             protected override void OnMouseClick(MouseEventArgs e)
             {
                 base.OnClick(e);
-                int x = (e.X-LABEL_COL_WIDTH) / DATA_COL_WIDTH;
-                int y = (e.Y-LABEL_ROW_HEIGHT) / DATA_ROW_HEIGHT;
+                int x = (e.X - LABEL_COL_WIDTH) / DATA_COL_WIDTH;
+                int y = (e.Y - LABEL_ROW_HEIGHT) / DATA_ROW_HEIGHT;
                 if (e.X > LABEL_COL_WIDTH && e.Y > LABEL_ROW_HEIGHT && (x + _firstColumn < COL_COUNT) && (y + _firstRow < ROW_COUNT))
                 {
                     _selectedCol = x + _firstColumn;
@@ -420,6 +441,12 @@ namespace SSGui
                         _ssp.SelectionChanged(_ssp);
                     }
                 }
+                Invalidate();
+            }
+
+            public void SetCellBackground(int col, int row, Color color)
+            {
+                _backgroundColors[new Address(col, row)] = color;
                 Invalidate();
             }
         }
