@@ -4,7 +4,7 @@ namespace SpreadsheetGUI
 {
     public interface ISpreadsheetServer
     {
-        Action<string> MessageReceived { get; set; }
+        event Action<string> MessageReceived;
         void SendMessage(string s);
     }
 }

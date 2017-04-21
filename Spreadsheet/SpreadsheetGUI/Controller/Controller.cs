@@ -40,6 +40,7 @@ namespace SpreadsheetGUI
             _window.HandleSaveAs += () => HandleSave(null);
             _window.HandleClose += HandleClose;
             _window.HandleHelp += WindowOnHandleHelp;
+            _window.HandleUndo += Undo;
 
             // Server Subscriptions
             _server.MessageReceived += MessageReceived;
@@ -76,46 +77,7 @@ namespace SpreadsheetGUI
         /// </summary>
         private bool HandleClose()
         {
-            if (Spreadsheet.Changed)
-            {
-                var response = MessageBox.Show($"Want to save your changes for {_spreadsheetName} before closing?", @"Spreadsheet",
-                    MessageBoxButtons.YesNoCancel);
-                switch (response)
-                {
-                    case DialogResult.Yes:
-                        HandleSave(_savePath);
-                        break;
-                    case DialogResult.No:
-                        break;
-                    case DialogResult.Cancel:
-                    case DialogResult.Abort:
-                        return true;
-                }
-            }
             return false;
-        }
-
-        /// <summary>
-        /// Creates a save window dialog for the user to select a path in which to save the file to.
-        /// </summary>
-        private string SaveFileDialog()
-        {
-            SaveFileDialog saveFileDialog = new SaveFileDialog
-            {
-                AddExtension = false,
-                CheckPathExists = true,
-                Filter = @"Spreadsheet (*.ss)|*.ss|All files (*.*)|*.*"
-            };
-
-            DialogResult dialogResult = saveFileDialog.ShowDialog();
-            if (dialogResult == DialogResult.OK)
-            {
-                bool extension = saveFileDialog.FilterIndex == 1;
-                string filePath = saveFileDialog.FileName;
-                if (extension && Path.GetExtension(filePath) != ".ss") filePath += ".ss";
-                return filePath;
-            }
-            return null;
         }
 
         /// <summary>
@@ -123,42 +85,6 @@ namespace SpreadsheetGUI
         /// </summary>
         public void HandleSave(string path)
         {
-            //If we don't have a path to save to we should get one from a save dialog.
-            if (path == null) path = SaveFileDialog();
-            if (path != null)
-            {
-                try
-                {
-                    TextWriter textWriter = new StreamWriter(path);
-                    Spreadsheet.Save(textWriter);
-                    textWriter.Close();
-                    SetSavedPath(path);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show($"An error occured saving the file.\n{e.Message}", @"Error Saving File");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a open window dialog for the user to select a file to be opened.
-        /// </summary>
-        /// <returns>The path of the selected file.</returns>
-        private string OpenFileDialog()
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = @"Spreadsheet (.ss)|*.ss|All Files (*.*)|*.*",
-                FilterIndex = 1,
-                Multiselect = false
-            };
-            DialogResult dialogResult = openFileDialog.ShowDialog();
-            if (dialogResult == DialogResult.OK)
-            {
-                return openFileDialog.FileName;
-            }
-            return null;
         }
 
         /// <summary>
@@ -177,7 +103,6 @@ namespace SpreadsheetGUI
         {
             SpreadsheetApplicationContext.GetContext().RunLauncher();
         }
-
 
         /// <summary>
         /// Every time the selection changes, this method is called with the
@@ -221,6 +146,10 @@ namespace SpreadsheetGUI
             {
                 GuiCell cell = new GuiCell(cellName);
                 _window.UpdateCell(cell.CellColumn, cell.CellRow, cell.GetCellValue(Spreadsheet));
+                if (SelectedCell.CellName == cell.CellName)
+                {
+                    _window.CellValueBoxText = SelectedCell.GetCellContents(Spreadsheet);
+                }
             }
         }
 

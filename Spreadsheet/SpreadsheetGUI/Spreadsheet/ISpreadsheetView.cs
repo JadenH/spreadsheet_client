@@ -14,6 +14,7 @@ namespace SpreadsheetGUI
         event Action HandleSave;
         event Action HandleSaveAs;
         event Action HandleHelp;
+        event Action HandleUndo;
 
         string InfoBarText { set; }
         Color InfoBarColor { set; }

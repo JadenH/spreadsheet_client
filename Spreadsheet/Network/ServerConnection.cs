@@ -12,7 +12,7 @@ namespace Network
     {
         private string _spreadsheetName;
 
-        public Action<string> MessageReceived { get; set; }
+        public event Action<string> MessageReceived;
 
         public StringChannel Protocol { get; private set; }
 

@@ -17,6 +17,7 @@ namespace SpreadsheetGUI
         public event Action HandleSave;
         public event Action HandleSaveAs;
         public event Action HandleHelp;
+        public event Action HandleUndo;
 
         public SpreadsheetWindow()
         {
@@ -24,6 +25,12 @@ namespace SpreadsheetGUI
             SpreadsheetData.SelectionChanged += SpreadsheetDataOnSelectionChanged;
             CellValueBox.KeyDown += CellValueBoxOnKeyDown;
             CellValueBox.Leave += CellValueBoxOnLostFocus;
+            undoToolStripMenuItem.Click += DoUndo;
+        }
+
+        private void DoUndo(object sender, EventArgs eventArgs)
+        {
+            HandleUndo?.Invoke();
         }
 
         private void CellValueBoxOnLostFocus(dynamic sender, EventArgs eventArgs)
@@ -56,7 +63,23 @@ namespace SpreadsheetGUI
 
         public string CellValueBoxText
         {
-            set { CellValueBox.Text = value; }
+            set
+            {
+                // InvokeRequired required compares the thread ID of the
+                // calling thread to the thread ID of the creating thread.
+                // If these threads are different, it returns true.
+                if (CellValueBox.InvokeRequired)
+                {
+                    Invoke(new Action<string>(s =>
+                    {
+                        CellValueBoxText = s;
+                    }), value);
+                }
+                else
+                {
+                    CellValueBox.Text = value;
+                }
+            }
         }
 
         public void SetSelection(int col, int row)
@@ -81,8 +104,6 @@ namespace SpreadsheetGUI
 
         private void SpreadsheetDataOnSelectionChanged(SpreadsheetPanel sender)
         {
-            CellValueBoxTextComplete?.Invoke(CellValueBox.Text);
-
             int col, row;
             sender.GetSelection(out col, out row);
             CellSelectionChange?.Invoke(col, row);
