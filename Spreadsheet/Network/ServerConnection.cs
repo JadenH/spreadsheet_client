@@ -11,6 +11,8 @@ namespace Network
     {
         private const string IPADDRESS = "155.98.111.70";
 
+        //Logan's machine 155.98.111.70
+
         public StringChannel Protocol { get; private set; }
 
         public void Connect()
@@ -39,7 +41,11 @@ namespace Network
         private void ClientOnConnected(object sender, EventArgs eventArgs)
         {
             Console.WriteLine("Connected");
-            Protocol.SendAsync("Hello!");
+            Protocol.SendAsync("Sent from client");
         }
+
+
+
+
     }
 }
