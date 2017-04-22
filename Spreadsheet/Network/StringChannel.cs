@@ -46,7 +46,7 @@ namespace Network
 
         public Task SendAsync(string message)
         {
-            return socket.SendAsync(Convert(message + "\n"));
+            return socket.IsConnected ? socket.SendAsync(Convert(message + "\n")) : null;
         }
 
         internal byte[] Convert(string message)

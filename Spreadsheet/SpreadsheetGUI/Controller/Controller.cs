@@ -58,9 +58,6 @@ namespace SpreadsheetGUI
             _window.HandleHelp += WindowOnHandleHelp;
             _window.HandleUndo += Undo;
 
-            // Server Subscriptions
-            _server.MessageReceived += MessageReceived;
-
             //Setup defaults
             _window.SetSelection(SelectedCell.CellColumn, SelectedCell.CellRow);
             UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
