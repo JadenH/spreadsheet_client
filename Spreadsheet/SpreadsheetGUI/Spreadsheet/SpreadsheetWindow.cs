@@ -82,6 +82,11 @@ namespace SpreadsheetGUI
             }
         }
 
+        internal void Invoke(Func<object> p)
+        {
+            throw new NotImplementedException();
+        }
+
         public void SetSelection(int col, int row)
         {
             SpreadsheetData.SetSelection(col, row);

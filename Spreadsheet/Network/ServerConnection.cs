@@ -10,9 +10,11 @@ namespace Network
 {
     public class ServerConnection: ISpreadsheetServer
     {
+      
         private string _spreadsheetName;
 
         public event Action<string> MessageReceived;
+        public event Action ClientDisconnected;
 
         public StringChannel Protocol { get; private set; }
 
@@ -24,6 +26,7 @@ namespace Network
 
             Protocol.Receiver.Subscribe(ReceiveMessage);
 
+            client.Disconnected += ClientOnDisconnected;
             client.Connected += ClientOnConnected;
             client.ConnectAsync().Wait();
         }
@@ -44,6 +47,12 @@ namespace Network
             Console.WriteLine("Connected");
             Protocol.SendAsync($"Connect\t{_spreadsheetName}\t");
         }
+        private void ClientOnDisconnected(object sender, EventArgs eventArgs)
+        {
+            Console.WriteLine("Disconnected");
+            ClientDisconnected?.Invoke();
+        }
+
 
     }
 }

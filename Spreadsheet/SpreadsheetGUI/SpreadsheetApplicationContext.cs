@@ -68,6 +68,11 @@ namespace SpreadsheetGUI
             SpreadsheetWindow spreadsheetWindow = new SpreadsheetWindow();
             new Controller(spreadsheetWindow, server);
 
+            server.ClientDisconnected += () =>
+            {
+                RunLauncher();
+            };
+
             // One more form is running
             windowCount++;
 
