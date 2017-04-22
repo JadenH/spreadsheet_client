@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Windows.Forms;
 using Network;
 using SS;
@@ -56,6 +57,12 @@ namespace SpreadsheetGUI
             launcherWindow.OpenSpreadsheet += RunNew;
         }
 
+        public void TestDelegate()
+        {
+            
+        }
+
+        public delegate void Test();
         /// <summary>
         /// Runs a form in this application context
         /// </summary>
@@ -66,13 +73,15 @@ namespace SpreadsheetGUI
 
             // Create the window and the controller
             SpreadsheetWindow spreadsheetWindow = new SpreadsheetWindow();
-            new Controller(spreadsheetWindow, server);
+            var controller = new Controller(spreadsheetWindow, server);
 
-            server.ClientDisconnected += () =>
+            server.ClientDisconnected += () => spreadsheetWindow.Invoke(new Test(() =>
             {
                 RunLauncher();
-            };
+                spreadsheetWindow.Close();
+            }));
 
+            server.MessageReceived += s => spreadsheetWindow.Invoke(new Test(() => { controller.MessageReceived(s); }));
             // One more form is running
             windowCount++;
 
