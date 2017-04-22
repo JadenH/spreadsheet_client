@@ -73,7 +73,7 @@ namespace SpreadsheetGUI
 
             // Create the window and the controller
             SpreadsheetWindow spreadsheetWindow = new SpreadsheetWindow();
-            var controller = new Controller(spreadsheetWindow, server);
+            var controller = new Controller(spreadsheetWindow, server,spreadsheetName);
 
             server.ClientDisconnected += () => spreadsheetWindow.Invoke(new Test(() =>
             {

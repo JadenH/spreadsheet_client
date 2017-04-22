@@ -149,5 +149,10 @@ namespace SpreadsheetGUI
         {
             HandleHelp?.Invoke();
         }
+
+        private void SelectedSheet_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -31,7 +31,6 @@ namespace SpreadsheetGUI
         private void InitializeComponent()
         {
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SpreadsheetData = new SSGui.SpreadsheetPanel();
             this.CellValueBox = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.DataBar = new System.Windows.Forms.Label();
@@ -40,30 +39,19 @@ namespace SpreadsheetGUI
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SpreadsheetData = new SSGui.SpreadsheetPanel();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.closeToolStripMenuItem.Text = "Close";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
-            // 
-            // SpreadsheetData
-            // 
-            this.SpreadsheetData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.SpreadsheetData.AutoScroll = true;
-            this.SpreadsheetData.Location = new System.Drawing.Point(0, 99);
-            this.SpreadsheetData.Margin = new System.Windows.Forms.Padding(0);
-            this.SpreadsheetData.Name = "SpreadsheetData";
-            this.SpreadsheetData.Size = new System.Drawing.Size(1073, 772);
-            this.SpreadsheetData.TabIndex = 0;
             // 
             // CellValueBox
             // 
@@ -140,23 +128,16 @@ namespace SpreadsheetGUI
             // newToolStripMenuItem
             // 
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.newToolStripMenuItem.Text = "New";
             this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
-            // 
-            // helpToolStripMenuItem
-            // 
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "Help";
-            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -170,8 +151,27 @@ namespace SpreadsheetGUI
             // 
             this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
             this.undoToolStripMenuItem.ShortcutKeyDisplayString = "";
-            this.undoToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.undoToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.undoToolStripMenuItem.Text = "Undo";
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Text = "Help";
+            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
+            // 
+            // SpreadsheetData
+            // 
+            this.SpreadsheetData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.SpreadsheetData.AutoScroll = true;
+            this.SpreadsheetData.Location = new System.Drawing.Point(0, 99);
+            this.SpreadsheetData.Margin = new System.Windows.Forms.Padding(0);
+            this.SpreadsheetData.Name = "SpreadsheetData";
+            this.SpreadsheetData.Size = new System.Drawing.Size(1073, 772);
+            this.SpreadsheetData.TabIndex = 0;
             // 
             // SpreadsheetWindow
             // 

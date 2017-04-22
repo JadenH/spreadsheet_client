@@ -17,7 +17,7 @@ namespace SpreadsheetGUI
         public Spreadsheet Spreadsheet;
         public GuiCell SelectedCell;
 
-        private string _spreadsheetName = "New Spreadsheet";
+        private string _spreadsheetName;
         private string _savePath;
 
         //Pallete of colors to highlight cells with for given users
@@ -38,10 +38,11 @@ namespace SpreadsheetGUI
         /// This is the controlling component in the MVC framework.
         /// </summary>
         /// <param name="window"></param>
-        public Controller(ISpreadsheetView window, ISpreadsheetServer server)
+        public Controller(ISpreadsheetView window, ISpreadsheetServer server, String SpreadsheetName)
         {
             _window = window;
             _server = server;
+            _spreadsheetName = SpreadsheetName;
             SelectedCell = new GuiCell(0, 0);
             Spreadsheet = new Spreadsheet();
             _random = new Random();
@@ -62,6 +63,7 @@ namespace SpreadsheetGUI
             _window.SetSelection(SelectedCell.CellColumn, SelectedCell.CellRow);
             UpdateInfoBar($"{SelectedCell.CellName}: { SelectedCell.GetCellValue(Spreadsheet)}", Color.White);
             UpdateCellNameText();
+            _window.SetTitle(_spreadsheetName);
         }
 
         /// <summary>
