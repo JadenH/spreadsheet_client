@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Text;
 using ReactiveSockets;
 using SpreadsheetGUI;
+using System.Windows.Forms;
 
 namespace Network
 {
@@ -28,14 +29,22 @@ namespace Network
 
             client.Disconnected += ClientOnDisconnected;
             client.Connected += ClientOnConnected;
-            try
+            //Lock this object so that client cannot send a message while receiving one.
+            lock (this)
             {
-                client.ConnectAsync().Wait();
+                try
+                {
+                    client.ConnectAsync().Wait();
+                }
+                catch
+                {
+
+                    MessageBox.Show("Could not connect to server! Check that the server is running and that you typed the ip correctly.", "Disconnect",
+                         MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ClientDisconnected?.Invoke();
+                }
             }
-            catch
-            {
-                ClientDisconnected?.Invoke();
-            }
+        
         }
 
         private void ReceiveMessage(string s)
@@ -46,7 +55,10 @@ namespace Network
 
         public void SendMessage(string s)
         {
-            Protocol.SendAsync(s);
+            lock (this)
+            {
+                Protocol.SendAsync(s);
+            }
         }
 
         private void ClientOnConnected(object sender, EventArgs eventArgs)
@@ -57,6 +69,9 @@ namespace Network
         private void ClientOnDisconnected(object sender, EventArgs eventArgs)
         {
             Console.WriteLine("Disconnected");
+
+            MessageBox.Show("Disconnected from server", "Disconnect",
+                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             ClientDisconnected?.Invoke();
         }
 
