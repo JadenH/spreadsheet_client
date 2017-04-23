@@ -28,7 +28,14 @@ namespace Network
 
             client.Disconnected += ClientOnDisconnected;
             client.Connected += ClientOnConnected;
-            client.ConnectAsync().Wait();
+            try
+            {
+                client.ConnectAsync().Wait();
+            }
+            catch
+            {
+                ClientDisconnected?.Invoke();
+            }
         }
 
         private void ReceiveMessage(string s)

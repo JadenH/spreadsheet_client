@@ -14,6 +14,7 @@ namespace SpreadsheetGUI
             switch (items.FirstOrDefault())
             {
                 case "Change":
+                case "hange":
                     UpdateCells(Spreadsheet.SetContentsOfCell(items[1], items[2]));
                     break;
                 case "Startup":
@@ -26,9 +27,11 @@ namespace SpreadsheetGUI
                     IsTyping();
                     break;
                 case "IsTyping":
+                case "sTyping":
                     SetCellTyping(items[1], items[2]);
                     break;
                 case "DoneTyping":
+                case "oneTyping":
                     DoneTyping(items[1], items[2]);
                     break;
             }
