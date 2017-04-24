@@ -49,12 +49,18 @@ namespace SpreadsheetGUI
 
         public void IsTyping()
         {
-            _server.SendMessage($"IsTyping\t{MyClientId}\t{SelectedCell.CellName}\t");
+            if (SelectedCell.CellName.Length > 0)
+            {
+                _server.SendMessage($"IsTyping\t{MyClientId}\t{SelectedCell.CellName}\t");
+            }
         }
 
         public void DoneTyping()
         {
-            _server.SendMessage($"DoneTyping\t{MyClientId}\t{SelectedCell.CellName}\t");
+            if (SelectedCell.CellName.Length > 0)
+            {
+                _server.SendMessage($"DoneTyping\t{MyClientId}\t{SelectedCell.CellName}\t");
+            }
         }
     }
 }
