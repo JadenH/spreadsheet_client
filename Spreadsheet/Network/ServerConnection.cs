@@ -29,6 +29,7 @@ namespace Network
 
             client.Disconnected += ClientOnDisconnected;
             client.Connected += ClientOnConnected;
+
             //Lock this object so that client cannot send a message while receiving one.
             lock (this)
             {
@@ -45,6 +46,11 @@ namespace Network
                 }
             }
         
+        }
+
+        public void Disconnect()
+        {
+            Protocol.Disconnect();
         }
 
         private void ReceiveMessage(string s)
@@ -66,12 +72,10 @@ namespace Network
             Console.WriteLine("Connected");
             Protocol.SendAsync($"Connect\t{_spreadsheetName}\t");
         }
+
         private void ClientOnDisconnected(object sender, EventArgs eventArgs)
         {
             Console.WriteLine("Disconnected");
-
-            MessageBox.Show("Disconnected from server", "Disconnect",
-                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             ClientDisconnected?.Invoke();
         }
 

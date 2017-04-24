@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Network;
 using SS;
@@ -13,7 +14,8 @@ namespace SpreadsheetGUI
     public class SpreadsheetApplicationContext : ApplicationContext
     {
         // Number of open forms
-        private int windowCount = 0;
+        private int spreadsheetWindowCount;
+        private int launcherWindowCount;
         public bool IsUnitTest;
 
         // Singleton ApplicationContext
@@ -44,10 +46,10 @@ namespace SpreadsheetGUI
             LauncherWindow launcherWindow = new LauncherWindow();
 
             // One more form is running
-            windowCount++;
+            launcherWindowCount++;
 
             // When this form closes, we want to find out
-            launcherWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+            launcherWindow.FormClosed += (o, e) => { if (--launcherWindowCount <= 0 && spreadsheetWindowCount <= 0) ExitThread(); };
             if (!IsUnitTest)
             {
                 // Run the form
@@ -55,11 +57,6 @@ namespace SpreadsheetGUI
             }
 
             launcherWindow.OpenSpreadsheet += RunNew;
-        }
-
-        public void TestDelegate()
-        {
-            
         }
 
         public delegate void Test();
@@ -73,20 +70,25 @@ namespace SpreadsheetGUI
 
             // Create the window and the controller
             SpreadsheetWindow spreadsheetWindow = new SpreadsheetWindow();
-            var controller = new Controller(spreadsheetWindow, server,spreadsheetName);
-
-            server.ClientDisconnected += () => spreadsheetWindow.Invoke(new Test(() =>
-            {
-                RunLauncher();
-                spreadsheetWindow.Close();
-            }));
+            var controller = new Controller(spreadsheetWindow, server, spreadsheetName);
 
             server.MessageReceived += s => spreadsheetWindow.Invoke(new Test(() => { controller.MessageReceived(s); }));
+
+            server.ClientDisconnected += () =>
+            {
+                ServerOnClientDisconnected(spreadsheetWindow);
+            };
+
             // One more form is running
-            windowCount++;
+            spreadsheetWindowCount++;
 
             // When this form closes, we want to find out
-            spreadsheetWindow.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+            spreadsheetWindow.FormClosed += (o, e) =>
+            {
+                spreadsheetWindow.Dispose();
+                Task.Run(() => { server.Disconnect(); });
+                if (--spreadsheetWindowCount <= 0) RunLauncher();
+            };
             if (!IsUnitTest)
             {
                 // Run the form
@@ -96,5 +98,12 @@ namespace SpreadsheetGUI
             server.Connect(ipaddress, spreadsheetName);
         }
 
+        private void ServerOnClientDisconnected(SpreadsheetWindow spreadsheetWindow)
+        {
+            if (spreadsheetWindow.Disposing || spreadsheetWindow.IsDisposed) return;
+            MessageBox.Show("Disconnected from server", "Disconnect", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            spreadsheetWindow.Invoke(new Test(spreadsheetWindow.Close));
+            
+        }
     }
 }
