@@ -25,7 +25,9 @@ namespace SpreadsheetGUI
             Color.FromArgb(71,144,193),
             Color.FromArgb(249, 197, 107),
             Color.FromArgb(181,209,125),
-            Color.FromArgb(140,122,163)
+            Color.FromArgb(140,122,163),
+            Color.FromArgb(244,153,102),
+            Color.FromArgb(232,53,103)
         };
 
         protected Dictionary<string, Client> Clients { get; set; }
